@@ -62,7 +62,7 @@ public class  ConversationActivity extends AppCompatActivity {
     /*
      *  You must provide a Twilio AccessToken to connect to the Conversations service
      */
-    private static final String ACCESS_TOKEN = "TWILIO_ACCESS_TOKEN";
+    private static final String TWILIO_ACCESS_TOKEN = "TWILIO_ACCESS_TOKEN";
 
     /*
      * Twilio Conversations Client allows a client to create or participate in a conversation.
@@ -254,7 +254,7 @@ public class  ConversationActivity extends AppCompatActivity {
 
                             // The TwilioAccessManager manages the lifetime of the access token and notifies the client of token expirations.
                             accessManager =
-                                    TwilioAccessManagerFactory.createAccessManager(ACCESS_TOKEN, accessManagerListener());
+                                    TwilioAccessManagerFactory.createAccessManager(TWILIO_ACCESS_TOKEN, accessManagerListener());
                             conversationsClient =
                                     TwilioConversations.createConversationsClient(accessManager, conversationsClientListener());
                             // Specify the audio output to use for this conversation client
