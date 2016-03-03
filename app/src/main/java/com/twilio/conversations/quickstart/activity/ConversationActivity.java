@@ -245,35 +245,27 @@ public class  ConversationActivity extends AppCompatActivity {
             TwilioConversations.initialize(getApplicationContext(), new TwilioConversations.InitListener() {
                 @Override
                 public void onInitialized() {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            /*
-                             * Now that the SDK is initialized we create a ConversationsClient and register for incoming calls.
-                             */
+                    /*
+                     * Now that the SDK is initialized we create a ConversationsClient and register for incoming calls.
+                     */
 
-                            // The TwilioAccessManager manages the lifetime of the access token and notifies the client of token expirations.
-                            accessManager =
-                                    TwilioAccessManagerFactory.createAccessManager(TWILIO_ACCESS_TOKEN, accessManagerListener());
-                            conversationsClient =
-                                    TwilioConversations.createConversationsClient(accessManager, conversationsClientListener());
-                            // Specify the audio output to use for this conversation client
-                            conversationsClient.setAudioOutput(AudioOutput.SPEAKERPHONE);
-                            // Initialize the camera capturer and start the camera preview
-                            cameraCapturer = CameraCapturerFactory.createCameraCapturer(
-                                    ConversationActivity.this,
-                                    CameraCapturer.CameraSource.CAMERA_SOURCE_FRONT_CAMERA,
-                                    previewFrameLayout,
-                                    capturerErrorListener());
-                            startPreview();
+                    // The TwilioAccessManager manages the lifetime of the access token and notifies the client of token expirations.
+                    accessManager =
+                            TwilioAccessManagerFactory.createAccessManager(TWILIO_ACCESS_TOKEN, accessManagerListener());
+                    conversationsClient =
+                            TwilioConversations.createConversationsClient(accessManager, conversationsClientListener());
+                    // Specify the audio output to use for this conversation client
+                    conversationsClient.setAudioOutput(AudioOutput.SPEAKERPHONE);
+                    // Initialize the camera capturer and start the camera preview
+                    cameraCapturer = CameraCapturerFactory.createCameraCapturer(
+                            ConversationActivity.this,
+                            CameraCapturer.CameraSource.CAMERA_SOURCE_FRONT_CAMERA,
+                            previewFrameLayout,
+                            capturerErrorListener());
+                    startPreview();
 
-                            // Register to receive incoming invites
-                            conversationsClient.listen();
-
-                        }
-                    });
-
-
+                    // Register to receive incoming invites
+                    conversationsClient.listen();
                 }
 
                 @Override
