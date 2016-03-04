@@ -29,7 +29,7 @@ Android application.
     Download server app for PHP
 </a>
 
-If you prefer, there are backend apps available for [other server-side languages](https://twilio.com/docs/api/video/quickstart-js).
+If you prefer, there are backend apps available for [other server-side languages](https://twilio.com/docs/api/video/guide/quickstart-js).
 
 This (beta) tutorial assumes you are able to run a PHP application on your development machine. On a Mac, the `php` command line tool is pre-installed and should be available at the terminal. On Linux or Windows, you may need to install php before continuing. 
 
