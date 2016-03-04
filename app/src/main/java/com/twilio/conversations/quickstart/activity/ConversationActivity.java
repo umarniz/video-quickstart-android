@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -18,6 +19,9 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.JsonObject;
+import com.koushikdutta.async.future.FutureCallback;
+import com.koushikdutta.ion.Ion;
 import com.twilio.common.TwilioAccessManager;
 import com.twilio.common.TwilioAccessManagerFactory;
 import com.twilio.common.TwilioAccessManagerListener;
@@ -270,11 +274,12 @@ public class  ConversationActivity extends AppCompatActivity {
             TwilioConversations.initialize(getApplicationContext(), new TwilioConversations.InitListener() {
                 @Override
                 public void onInitialized() {
-                    /*
-                     * Now that the SDK is initialized we create a ConversationsClient and register for incoming calls.
+                    /**
+                     * Now that the SDK is initialized we create a ConversationsClient and
+                     * register for incoming calls. The TwilioAccessManager manages the lifetime
+                     * of the access token and notifies the client of token expirations.
                      */
-
-                    // The TwilioAccessManager manages the lifetime of the access token and notifies the client of token expirations.
+                    // OPTION 1- Generate an access token from the quickstart portal https://www.twilio.com/user/account/video/getting-started
                     accessManager =
                             TwilioAccessManagerFactory.createAccessManager(TWILIO_ACCESS_TOKEN, accessManagerListener());
                     conversationsClient =
@@ -288,9 +293,11 @@ public class  ConversationActivity extends AppCompatActivity {
                             previewFrameLayout,
                             capturerErrorListener());
                     startPreview();
-
                     // Register to receive incoming invites
                     conversationsClient.listen();
+
+                    // OPTION 2- Retrieve an access token from your own web app
+//                    retrieveAccessTokenfromServer();
                 }
 
                 @Override
@@ -800,4 +807,42 @@ public class  ConversationActivity extends AppCompatActivity {
         }
     }
 
+    private void retrieveAccessTokenfromServer() {
+        Ion.with(this)
+                .load("http://localhost:8000/token.php?device=" + Build.SERIAL)
+                .asJsonObject()
+                .setCallback(new FutureCallback<JsonObject>() {
+                    @Override
+                    public void onCompleted(Exception e, JsonObject result) {
+                        if (e == null) {
+                            // The identity can be used to receive calls
+                            String identity = result.get("identity").getAsString();
+                            String accessToken = result.get("token").getAsString();
+                            accessManager =
+                                    TwilioAccessManagerFactory.createAccessManager(accessToken,
+                                                    accessManagerListener());
+                            conversationsClient =
+                                    TwilioConversations
+                                            .createConversationsClient(accessManager,
+                                                    conversationsClientListener());
+                            // Specify the audio output to use for this conversation client
+                            conversationsClient.setAudioOutput(AudioOutput.SPEAKERPHONE);
+                            // Initialize the camera capturer and start the camera preview
+                            cameraCapturer = CameraCapturerFactory.createCameraCapturer(
+                                    ConversationActivity.this,
+                                    CameraCapturer.CameraSource.CAMERA_SOURCE_FRONT_CAMERA,
+                                    previewFrameLayout,
+                                    capturerErrorListener());
+                            startPreview();
+
+                            // Register to receive incoming invites
+                            conversationsClient.listen();
+                        } else {
+                            Toast.makeText(ConversationActivity.this,
+                                    R.string.error_retrieving_access_token, Toast.LENGTH_SHORT)
+                                    .show();
+                        }
+                    }
+                });
+    }
 }
