@@ -20,7 +20,7 @@ API Secret | Used to authenticate - [just like the above, you'll get one here](h
 ## Set up the server app
 
 A Video application has two pieces - a client (our Android app) and a server.
-You can learn more about what the server app does [in this guide](https://twilio.com/docs/api/video/identity).
+You can learn more about what the server app does [in this guide](https://twilio.com/docs/api/video/guide/identity).
 For now, let's just get a simple server running so we can use it to power our
 Android application.
 
@@ -94,7 +94,7 @@ The mobile app will attempt to retrieve a token from the PHP server that we star
 
 The app should launch on your device and fetch a token from the PHP server we set up earlier. From here, open the browser app that we started earlier. From the Android app, click the Call button and type in the identity assigned to you in the browser application. Press Call and you should be receive a Conversation Invite in the browser. The browser app will accept the Invite automatically, and a video Conversation will be created.
 
-From here, you can start building your own application. For guidance on integrating Twilio Video's Conversations framework into your existing project, [head over to our install guide](https://twilio.com/docs/api/video/sdks). If you'd like to learn more about how Video works, you might want to dive into our user [identity](https://twilio.com/docs/api/video/identity) guide, which talks about the relationship between the mobile app and the server.
+From here, you can start building your own application. For guidance on integrating Twilio Video's Conversations framework into your existing project, [head over to our install guide](https://twilio.com/docs/api/video/sdks). If you'd like to learn more about how Video works, you might want to dive into our user [identity](https://twilio.com/docs/api/video/guide/identity) guide, which talks about the relationship between the mobile app and the server.
 
 Good luck and have fun!
 
