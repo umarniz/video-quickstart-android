@@ -809,7 +809,7 @@ public class  ConversationActivity extends AppCompatActivity {
 
     private void retrieveAccessTokenfromServer() {
         Ion.with(this)
-                .load("http://localhost:8000/token.php)
+                .load("http://localhost:8000/token.php")
                 .asJsonObject()
                 .setCallback(new FutureCallback<JsonObject>() {
                     @Override
