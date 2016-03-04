@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -113,13 +114,6 @@ public class  ConversationActivity extends AppCompatActivity {
         setContentView(R.layout.activity_conversation);
 
         /*
-         * Check camera and microphone permissions. Needed in Android M.
-         */
-        if (!checkPermissionForCameraAndMicrophone()) {
-            requestPermissionForCameraAndMicrophone();
-        }
-
-        /*
          * Load views from resources
          */
         previewFrameLayout = (FrameLayout) findViewById(R.id.previewFrameLayout);
@@ -139,15 +133,46 @@ public class  ConversationActivity extends AppCompatActivity {
         setVolumeControlStream(AudioManager.STREAM_VOICE_CALL);
 
         /*
-         * Initialize the Twilio Conversations SDK
+         * Check camera and microphone permissions. Needed in Android M.
          */
-        initializeTwilioSdk();
+        if (!checkPermissionForCameraAndMicrophone()) {
+            requestPermissionForCameraAndMicrophone();
+        } else {
+            /*
+             * Initialize the Twilio Conversations SDK
+             */
+            initializeTwilioSdk();
+        }
 
         /*
          * Set the initial state of the UI
          */
         setCallAction();
 
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == CAMERA_MIC_PERMISSION_REQUEST_CODE &&
+                permissions.length > 0) {
+            boolean granted = true;
+            /*
+             * Check if all permissions are granted
+             */
+            for (int i=0; i < permissions.length; i++) {
+                granted = granted && (grantResults[i] == PackageManager.PERMISSION_GRANTED);
+            }
+            if (granted) {
+                /*
+                 * Initialize the Twilio Conversations SDK
+                 */
+                initializeTwilioSdk();
+            } else {
+                Toast.makeText(this,
+                        "Camera and Microphone permissions needed. Please allow in App Settings for additional functionality.",
+                        Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     @Override
