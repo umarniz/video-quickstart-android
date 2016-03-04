@@ -279,7 +279,7 @@ public class  ConversationActivity extends AppCompatActivity {
                      * register for incoming calls. The TwilioAccessManager manages the lifetime
                      * of the access token and notifies the client of token expirations.
                      */
-                    // OPTION 1- Generate an access token from the quickstart portal https://www.twilio.com/user/account/video/getting-started
+                    // OPTION 1- Generate an access token from the getting started portal https://www.twilio.com/user/account/video/getting-started
                     accessManager =
                             TwilioAccessManagerFactory.createAccessManager(TWILIO_ACCESS_TOKEN, accessManagerListener());
                     conversationsClient =
@@ -297,7 +297,7 @@ public class  ConversationActivity extends AppCompatActivity {
                     conversationsClient.listen();
 
                     // OPTION 2- Retrieve an access token from your own web app
-//                    retrieveAccessTokenfromServer();
+                    // retrieveAccessTokenfromServer();
                 }
 
                 @Override
@@ -809,7 +809,7 @@ public class  ConversationActivity extends AppCompatActivity {
 
     private void retrieveAccessTokenfromServer() {
         Ion.with(this)
-                .load("http://localhost:8000/token.php?device=" + Build.SERIAL)
+                .load("http://localhost:8000/token.php)
                 .asJsonObject()
                 .setCallback(new FutureCallback<JsonObject>() {
                     @Override
