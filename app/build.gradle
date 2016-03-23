@@ -23,7 +23,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
 
     compile 'com.koushikdutta.ion:ion:2.1.7'
-    compile 'com.twilio:conversations-android:0.8.1'
+    compile 'com.twilio:conversations-android:0.8.+'
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:design:23.1.1'
 }
