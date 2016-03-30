@@ -1,17 +1,22 @@
 package com.twilio.conversations.quickstart.activity;
 
 import android.Manifest;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -55,7 +60,6 @@ import com.twilio.conversations.quickstart.R;
 import com.twilio.conversations.quickstart.dialog.Dialog;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class  ConversationActivity extends AppCompatActivity {
@@ -112,6 +116,8 @@ public class  ConversationActivity extends AppCompatActivity {
     private boolean wasPreviewing;
     private boolean wasLive;
 
+    private boolean loggingOut;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -153,6 +159,35 @@ public class  ConversationActivity extends AppCompatActivity {
          */
         setCallAction();
 
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+
+        inflater.inflate(R.menu.quickstart_menu, menu);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_log_out:
+                /*
+                 * All conversations need to be ended before tearing down the SDK
+                 */
+                loggingOut = true;
+                if (isConversationOngoing()) {
+                    hangup();
+                } else {
+                    logout();
+                }
+
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
@@ -321,13 +356,74 @@ public class  ConversationActivity extends AppCompatActivity {
         }
     }
 
-
-
     private void hangup() {
         if(conversation != null) {
             conversation.disconnect();
         } else if(outgoingInvite != null){
             outgoingInvite.cancel();
+        }
+    }
+
+    private boolean isConversationOngoing() {
+        return conversation != null ||
+                outgoingInvite != null;
+    }
+
+    private void logout() {
+        // Teardown preview
+        if (cameraCapturer != null && cameraCapturer.isPreviewing()) {
+            stopPreview();
+            cameraCapturer = null;
+        }
+
+        // Teardown our conversation
+        disposeConversation();
+
+        // Lets unlisten first otherwise complete logout
+        if (conversationsClient != null && conversationsClient.isListening()) {
+            conversationsClient.unlisten();
+        } else {
+            completeLogout();
+        }
+    }
+
+    /**
+     * Once all conversations have been ended and invites are no longer being listened for, the
+     * Conversations SDK can be torn down
+     */
+    private void completeLogout() {
+        disposeConversationsClient();
+        destroyConversationsSdk();
+
+        // Only required if you are done using the access manager
+        disposeAccessManager();
+
+        finish();
+        loggingOut = false;
+    }
+
+    private void disposeConversation() {
+        if (conversation != null) {
+            conversation.dispose();
+            conversation = null;
+        }
+    }
+
+    private void disposeConversationsClient() {
+        if (conversationsClient != null) {
+            conversationsClient.dispose();
+            conversationsClient = null;
+        }
+    }
+
+    private void destroyConversationsSdk() {
+        TwilioConversations.destroy();
+    }
+
+    private void disposeAccessManager() {
+        if (accessManager != null) {
+            accessManager.dispose();
+            accessManager = null;
         }
     }
 
@@ -396,8 +492,12 @@ public class  ConversationActivity extends AppCompatActivity {
                                         conversation.setConversationListener(conversationListener());
                                     } else {
                                         Log.e(TAG, e.getMessage());
-                                        hangup();
-                                        reset();
+                                        if (!loggingOut) {
+                                            hangup();
+                                            reset();
+                                        } else {
+                                            logout();
+                                        }
                                     }
                                 }
                             });
@@ -602,7 +702,12 @@ public class  ConversationActivity extends AppCompatActivity {
             @Override
             public void onConversationEnded(Conversation conversation, TwilioConversationsException e) {
                 conversationStatusTextView.setText("onConversationEnded");
-                reset();
+                // If logging out complete the process once conversation has ended
+                if (loggingOut) {
+                    logout();
+                } else {
+                    reset();
+                }
             }
         };
     }
@@ -704,6 +809,10 @@ public class  ConversationActivity extends AppCompatActivity {
             @Override
             public void onStopListeningForInvites(ConversationsClient conversationsClient) {
                 conversationStatusTextView.setText("onStopListeningForInvites");
+                // If we are logging out let us finish the teardown process
+                if (loggingOut) {
+                    completeLogout();
+                }
             }
 
             @Override
@@ -724,6 +833,10 @@ public class  ConversationActivity extends AppCompatActivity {
             @Override
             public void onIncomingInviteCancelled(ConversationsClient conversationsClient, IncomingInvite incomingInvite) {
                 conversationStatusTextView.setText("onIncomingInviteCancelled");
+                alertDialog.dismiss();
+                Snackbar.make(conversationStatusTextView, "Invite from " +
+                        incomingInvite.getInviter() + " terminated", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
             }
         };
     }
@@ -818,6 +931,8 @@ public class  ConversationActivity extends AppCompatActivity {
                             // The identity can be used to receive calls
                             String identity = result.get("identity").getAsString();
                             String accessToken = result.get("token").getAsString();
+
+                            setTitle(identity);
                             accessManager =
                                     TwilioAccessManagerFactory.createAccessManager(accessToken,
                                                     accessManagerListener());
