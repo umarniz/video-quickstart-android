@@ -260,7 +260,7 @@ public class  ConversationActivity extends AppCompatActivity {
      * Creates an incoming conversation UI dialog
      */
     private void showInviteDialog(final IncomingInvite incomingInvite) {
-        alertDialog = Dialog.createInviteDialog(incomingInvite.getInvitee(), acceptCallClickListener(incomingInvite), rejectCallClickListener(incomingInvite), this);
+        alertDialog = Dialog.createInviteDialog(incomingInvite.getInviter(), acceptCallClickListener(incomingInvite), rejectCallClickListener(incomingInvite), this);
         alertDialog.show();
     }
 
@@ -717,7 +717,7 @@ public class  ConversationActivity extends AppCompatActivity {
                 if (conversation == null) {
                     showInviteDialog(incomingInvite);
                 } else {
-                    Log.w(TAG, String.format("Conversation in progress. Invite from %s ignored", incomingInvite.getInvitee()));
+                    Log.w(TAG, String.format("Conversation in progress. Invite from %s ignored", incomingInvite.getInviter()));
                 }
             }
 
@@ -746,7 +746,7 @@ public class  ConversationActivity extends AppCompatActivity {
     private TwilioAccessManagerListener accessManagerListener() {
         return new TwilioAccessManagerListener() {
             @Override
-            public void onAccessManagerTokenExpire(TwilioAccessManager twilioAccessManager) {
+            public void onTokenExpired(TwilioAccessManager twilioAccessManager) {
                 conversationStatusTextView.setText("onAccessManagerTokenExpire");
 
             }
