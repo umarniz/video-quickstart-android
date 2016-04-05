@@ -24,8 +24,7 @@
         <activity
             android:name=".activity.ConversationActivity"
             android:label="quickstart"
-            android:configChanges="orientation|screenSize"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:configChanges="orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
