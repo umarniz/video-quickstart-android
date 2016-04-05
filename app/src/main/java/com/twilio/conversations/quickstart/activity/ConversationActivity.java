@@ -376,8 +376,7 @@ public class  ConversationActivity extends AppCompatActivity {
             cameraCapturer = null;
         }
 
-        // Teardown our conversation
-        disposeConversation();
+        conversation = null;
 
         // Lets unlisten first otherwise complete logout
         if (conversationsClient != null && conversationsClient.isListening()) {
@@ -392,7 +391,7 @@ public class  ConversationActivity extends AppCompatActivity {
      * Conversations SDK can be torn down
      */
     private void completeLogout() {
-        disposeConversationsClient();
+        conversationsClient = null;
         destroyConversationsSdk();
 
         // Only required if you are done using the access manager
@@ -400,18 +399,6 @@ public class  ConversationActivity extends AppCompatActivity {
 
         finish();
         loggingOut = false;
-    }
-
-    private void disposeConversation() {
-        if (conversation != null) {
-            conversation = null;
-        }
-    }
-
-    private void disposeConversationsClient() {
-        if (conversationsClient != null) {
-            conversationsClient = null;
-        }
     }
 
     private void destroyConversationsSdk() {
@@ -436,7 +423,7 @@ public class  ConversationActivity extends AppCompatActivity {
         localContainer = (ViewGroup)findViewById(R.id.localContainer);
         participantContainer.removeAllViews();
 
-        disposeConversation();
+        conversation = null;
         outgoingInvite = null;
 
         muteMicrophone = false;
