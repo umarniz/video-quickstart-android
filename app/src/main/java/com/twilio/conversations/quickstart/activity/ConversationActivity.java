@@ -404,14 +404,12 @@ public class  ConversationActivity extends AppCompatActivity {
 
     private void disposeConversation() {
         if (conversation != null) {
-            conversation.dispose();
             conversation = null;
         }
     }
 
     private void disposeConversationsClient() {
         if (conversationsClient != null) {
-            conversationsClient.dispose();
             conversationsClient = null;
         }
     }
@@ -438,10 +436,7 @@ public class  ConversationActivity extends AppCompatActivity {
         localContainer = (ViewGroup)findViewById(R.id.localContainer);
         participantContainer.removeAllViews();
 
-        if(conversation != null) {
-            conversation.dispose();
-            conversation = null;
-        }
+        disposeConversation();
         outgoingInvite = null;
 
         muteMicrophone = false;
