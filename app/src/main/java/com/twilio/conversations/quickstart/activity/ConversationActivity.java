@@ -311,7 +311,7 @@ public class  ConversationActivity extends AppCompatActivity {
      * Initialize the Twilio Conversations SDK
      */
     private void initializeTwilioSdk(){
-        TwilioConversations.setLogLevel(TwilioConversations.LogLevel.DEBUG);
+        TwilioConversations.setLogLevel(TwilioConversations.LogLevel.ERROR);
 
         if(!TwilioConversations.isInitialized()) {
             TwilioConversations.initialize(getApplicationContext(),
