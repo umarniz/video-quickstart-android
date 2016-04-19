@@ -227,7 +227,7 @@ public class  ConversationActivity extends AppCompatActivity {
         }
         // Resume preview
         if(cameraCapturer != null && wasPreviewing) {
-            cameraCapturer.startPreview();
+            cameraCapturer.startPreview(previewFrameLayout);
             wasPreviewing = false;
         }
         // Resume live video
@@ -325,7 +325,9 @@ public class  ConversationActivity extends AppCompatActivity {
                      */
                     // OPTION 1- Generate an access token from the getting started portal https://www.twilio.com/user/account/video/getting-started
                     accessManager =
-                            TwilioAccessManagerFactory.createAccessManager(TWILIO_ACCESS_TOKEN, accessManagerListener());
+                            TwilioAccessManagerFactory.createAccessManager(ConversationActivity.this,
+                                    TWILIO_ACCESS_TOKEN,
+                                    accessManagerListener());
                     conversationsClient =
                             TwilioConversations.createConversationsClient(accessManager, conversationsClientListener());
                     // Specify the audio output to use for this conversation client
@@ -334,7 +336,6 @@ public class  ConversationActivity extends AppCompatActivity {
                     cameraCapturer = CameraCapturerFactory.createCameraCapturer(
                             ConversationActivity.this,
                             CameraCapturer.CameraSource.CAMERA_SOURCE_FRONT_CAMERA,
-                            previewFrameLayout,
                             capturerErrorListener());
                     startPreview();
                     // Register to receive incoming invites
@@ -356,7 +357,7 @@ public class  ConversationActivity extends AppCompatActivity {
 
 
     private void startPreview() {
-        cameraCapturer.startPreview();
+        cameraCapturer.startPreview(previewFrameLayout);
     }
 
     private void stopPreview() {
@@ -452,7 +453,6 @@ public class  ConversationActivity extends AppCompatActivity {
         setCallAction();
         startPreview();
     }
-
 
     private DialogInterface.OnClickListener callParticipantClickListener(final EditText participantEditText) {
         return new DialogInterface.OnClickListener(){
@@ -970,8 +970,9 @@ public class  ConversationActivity extends AppCompatActivity {
 
                             setTitle(identity);
                             accessManager =
-                                    TwilioAccessManagerFactory.createAccessManager(accessToken,
-                                                    accessManagerListener());
+                                    TwilioAccessManagerFactory.createAccessManager(ConversationActivity.this,
+                                            accessToken,
+                                            accessManagerListener());
                             conversationsClient =
                                     TwilioConversations
                                             .createConversationsClient(accessManager,
@@ -982,7 +983,6 @@ public class  ConversationActivity extends AppCompatActivity {
                             cameraCapturer = CameraCapturerFactory.createCameraCapturer(
                                     ConversationActivity.this,
                                     CameraCapturer.CameraSource.CAMERA_SOURCE_FRONT_CAMERA,
-                                    previewFrameLayout,
                                     capturerErrorListener());
                             startPreview();
 
