@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -69,7 +70,7 @@ public class  ConversationActivity extends AppCompatActivity {
     private static final int CAMERA_MIC_PERMISSION_REQUEST_CODE = 1;
 
     /*
-     *  You must provide a Twilio AccessToken to connect to the Conversations service
+     * You must provide a Twilio AccessToken to connect to the Conversations service
      */
     private static final String TWILIO_ACCESS_TOKEN = "TWILIO_ACCESS_TOKEN";
 
@@ -84,12 +85,14 @@ public class  ConversationActivity extends AppCompatActivity {
     private Conversation conversation;
 
     /*
-     * An OutgoingInvite represents an invitation to start or join a conversation with one or more participants
+     * An OutgoingInvite represents an invitation to start or join a conversation with one or
+     * more participants
      */
     private OutgoingInvite outgoingInvite;
 
     /*
-     * A VideoViewRenderer receives frames from a local or remote video track and renders the frames to a provided view
+     * A VideoViewRenderer receives frames from a local or remote video track and renders
+     * the frames to a provided view
      */
     private VideoViewRenderer participantVideoRenderer;
     private VideoViewRenderer localVideoRenderer;
@@ -191,7 +194,9 @@ public class  ConversationActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         if (requestCode == CAMERA_MIC_PERMISSION_REQUEST_CODE &&
                 permissions.length > 0) {
             boolean granted = true;
@@ -207,9 +212,7 @@ public class  ConversationActivity extends AppCompatActivity {
                  */
                 initializeTwilioSdk();
             } else {
-                Toast.makeText(this,
-                        "Camera and Microphone permissions needed. Please allow in App Settings for additional functionality.",
-                        Toast.LENGTH_LONG).show();
+                Toast.makeText(this, R.string.permissions_needed, Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -259,7 +262,8 @@ public class  ConversationActivity extends AppCompatActivity {
      * The initial state when there is no active conversation.
      */
     private void setCallAction() {
-        callActionFab.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_call_white_24px));
+        callActionFab.setImageDrawable(ContextCompat.getDrawable(this,
+                R.drawable.ic_call_white_24px));
         callActionFab.show();
         callActionFab.setOnClickListener(callActionFabClickListener());
         switchCameraActionFab.show();
@@ -275,7 +279,8 @@ public class  ConversationActivity extends AppCompatActivity {
      * The actions performed during hangup.
      */
     private void setHangupAction() {
-        callActionFab.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_call_end_white_24px));
+        callActionFab.setImageDrawable(ContextCompat.getDrawable(this,
+                R.drawable.ic_call_end_white_24px));
         callActionFab.show();
         callActionFab.setOnClickListener(hangupClickListener());
         speakerActionFab.show();
@@ -287,7 +292,8 @@ public class  ConversationActivity extends AppCompatActivity {
      */
     private void showCallDialog() {
         EditText participantEditText = new EditText(this);
-        alertDialog = Dialog.createCallParticipantsDialog(participantEditText, callParticipantClickListener(participantEditText), cancelCallClickListener(), this);
+        alertDialog = Dialog.createCallParticipantsDialog(participantEditText,
+                callParticipantClickListener(participantEditText), cancelCallClickListener(), this);
         alertDialog.show();
     }
 
@@ -295,7 +301,9 @@ public class  ConversationActivity extends AppCompatActivity {
      * Creates an incoming conversation UI dialog
      */
     private void showInviteDialog(final IncomingInvite incomingInvite) {
-        alertDialog = Dialog.createInviteDialog(incomingInvite.getInviter(), acceptCallClickListener(incomingInvite), rejectCallClickListener(incomingInvite), this);
+        alertDialog = Dialog.createInviteDialog(incomingInvite.getInviter(),
+                acceptCallClickListener(incomingInvite), rejectCallClickListener(incomingInvite),
+                this);
         alertDialog.show();
     }
 
@@ -306,10 +314,11 @@ public class  ConversationActivity extends AppCompatActivity {
         TwilioConversations.setLogLevel(TwilioConversations.LogLevel.DEBUG);
 
         if(!TwilioConversations.isInitialized()) {
-            TwilioConversations.initialize(getApplicationContext(), new TwilioConversations.InitListener() {
+            TwilioConversations.initialize(getApplicationContext(),
+                    new TwilioConversations.InitListener() {
                 @Override
                 public void onInitialized() {
-                    /**
+                    /*
                      * Now that the SDK is initialized we create a ConversationsClient and
                      * register for incoming calls. The TwilioAccessManager manages the lifetime
                      * of the access token and notifies the client of token expirations.
@@ -332,7 +341,7 @@ public class  ConversationActivity extends AppCompatActivity {
                     conversationsClient.listen();
 
                     // OPTION 2- Retrieve an access token from your own web app
-                    // retrieveAccessTokenfromServer();
+//                     retrieveAccessTokenfromServer();
                 }
 
                 @Override
@@ -386,7 +395,7 @@ public class  ConversationActivity extends AppCompatActivity {
         }
     }
 
-    /**
+    /*
      * Once all conversations have been ended and invites are no longer being listened for, the
      * Conversations SDK can be torn down
      */
@@ -438,9 +447,7 @@ public class  ConversationActivity extends AppCompatActivity {
         speakerActionFab.setImageDrawable(
                 ContextCompat.getDrawable( ConversationActivity.this,
                         R.drawable.ic_volume_down_green_24px));
-        if (conversationsClient != null) {
-            conversationsClient.setAudioOutput(AudioOutput.HEADSET);
-        }
+        setSpeakerphoneOn(true);
 
         setCallAction();
         startPreview();
@@ -613,13 +620,35 @@ public class  ConversationActivity extends AppCompatActivity {
                 }
                 if (muteMicrophone) {
                     muteActionFab.setImageDrawable(
-                            ContextCompat.getDrawable(ConversationActivity.this, R.drawable.ic_mic_off_red_24px));
+                            ContextCompat.getDrawable(ConversationActivity.this,
+                                    R.drawable.ic_mic_off_red_24px));
                 } else {
                     muteActionFab.setImageDrawable(
-                            ContextCompat.getDrawable(ConversationActivity.this, R.drawable.ic_mic_green_24px));
+                            ContextCompat.getDrawable(ConversationActivity.this,
+                                    R.drawable.ic_mic_green_24px));
                 }
             }
         };
+    }
+
+    private void setSpeakerphoneOn(boolean on) {
+        if (conversationsClient == null) {
+            Log.e(TAG, "Unable to set audio output, conversation client is null");
+            return;
+        }
+        conversationsClient.setAudioOutput(on ? AudioOutput.SPEAKERPHONE :
+                AudioOutput.HEADSET);
+
+        if (on == true) {
+            Drawable drawable = ContextCompat.getDrawable(this,
+                    R.drawable.ic_volume_down_green_24px);
+            speakerActionFab.setImageDrawable(drawable);
+        } else {
+            // route back to headset
+            Drawable drawable = ContextCompat.getDrawable(this,
+                    R.drawable.ic_volume_down_white_24px);
+            speakerActionFab.setImageDrawable(drawable);
+        }
     }
 
     private View.OnClickListener speakerClickListener() {
@@ -634,17 +663,9 @@ public class  ConversationActivity extends AppCompatActivity {
                     return;
                 }
                 boolean speakerOn =
-                        !(conversationsClient.getAudioOutput() ==  AudioOutput.SPEAKERPHONE) ?  true : false;
-                conversationsClient.setAudioOutput(speakerOn ? AudioOutput.SPEAKERPHONE : AudioOutput.HEADSET);
-                if (speakerOn) {
-                    speakerActionFab.setImageDrawable(
-                            ContextCompat.getDrawable( ConversationActivity.this,
-                                    R.drawable.ic_volume_down_green_24px));
-                } else {
-                    speakerActionFab.setImageDrawable(
-                            ContextCompat.getDrawable(ConversationActivity.this,
-                                    R.drawable.ic_volume_down_white_24px));
-                }
+                        !(conversationsClient.getAudioOutput() ==  AudioOutput.SPEAKERPHONE) ?
+                                true : false;
+                setSpeakerphoneOn(speakerOn);
             }
         };
     }
@@ -671,18 +692,24 @@ public class  ConversationActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailedToConnectParticipant(Conversation conversation, Participant participant, TwilioConversationsException e) {
+            public void onFailedToConnectParticipant(Conversation conversation,
+                                                     Participant participant,
+                                                     TwilioConversationsException e) {
                 Log.e(TAG, e.getMessage());
-                conversationStatusTextView.setText("onFailedToConnectParticipant " + participant.getIdentity());
+                conversationStatusTextView.setText("onFailedToConnectParticipant " +
+                        participant.getIdentity());
             }
 
             @Override
-            public void onParticipantDisconnected(Conversation conversation, Participant participant) {
-                conversationStatusTextView.setText("onParticipantDisconnected " + participant.getIdentity());
+            public void onParticipantDisconnected(Conversation conversation,
+                                                  Participant participant) {
+                conversationStatusTextView.setText("onParticipantDisconnected " +
+                        participant.getIdentity());
             }
 
             @Override
-            public void onConversationEnded(Conversation conversation, TwilioConversationsException e) {
+            public void onConversationEnded(Conversation conversation,
+                                            TwilioConversationsException e) {
                 conversationStatusTextView.setText("onConversationEnded");
                 // If logging out complete the process once conversation has ended
                 if (loggingOut) {
@@ -700,20 +727,25 @@ public class  ConversationActivity extends AppCompatActivity {
     private LocalMediaListener localMediaListener(){
         return new LocalMediaListener() {
             @Override
-            public void onLocalVideoTrackAdded(LocalMedia localMedia, LocalVideoTrack localVideoTrack) {
+            public void onLocalVideoTrackAdded(LocalMedia localMedia,
+                                               LocalVideoTrack localVideoTrack) {
                 conversationStatusTextView.setText("onLocalVideoTrackAdded");
-                localVideoRenderer = new VideoViewRenderer(ConversationActivity.this, localContainer);
+                localVideoRenderer = new VideoViewRenderer(ConversationActivity.this,
+                        localContainer);
                 localVideoTrack.addRenderer(localVideoRenderer);
             }
 
             @Override
-            public void onLocalVideoTrackRemoved(LocalMedia localMedia, LocalVideoTrack localVideoTrack) {
+            public void onLocalVideoTrackRemoved(LocalMedia localMedia,
+                                                 LocalVideoTrack localVideoTrack) {
                 conversationStatusTextView.setText("onLocalVideoTrackRemoved");
                 localContainer.removeAllViews();
             }
 
             @Override
-            public void onLocalVideoTrackError(LocalMedia localMedia, LocalVideoTrack localVideoTrack, TwilioConversationsException e) {
+            public void onLocalVideoTrackError(LocalMedia localMedia,
+                                               LocalVideoTrack localVideoTrack,
+                                               TwilioConversationsException e) {
                 Log.e(TAG, "LocalVideoTrackError: " + e.getMessage());
             }
         };
@@ -725,12 +757,16 @@ public class  ConversationActivity extends AppCompatActivity {
     private ParticipantListener participantListener() {
         return new ParticipantListener() {
             @Override
-            public void onVideoTrackAdded(Conversation conversation, Participant participant, VideoTrack videoTrack) {
+            public void onVideoTrackAdded(Conversation conversation,
+                                          Participant participant,
+                                          VideoTrack videoTrack) {
                 Log.i(TAG, "onVideoTrackAdded " + participant.getIdentity());
-                conversationStatusTextView.setText("onVideoTrackAdded " + participant.getIdentity());
+                conversationStatusTextView.setText("onVideoTrackAdded " +
+                        participant.getIdentity());
 
                 // Remote participant
-                participantVideoRenderer = new VideoViewRenderer(ConversationActivity.this, participantContainer);
+                participantVideoRenderer = new VideoViewRenderer(ConversationActivity.this,
+                        participantContainer);
                 participantVideoRenderer.setObserver(new VideoRendererObserver() {
 
                     @Override
@@ -740,7 +776,8 @@ public class  ConversationActivity extends AppCompatActivity {
 
                     @Override
                     public void onFrameDimensionsChanged(int width, int height, int rotation) {
-                        Log.i(TAG, "Participant onFrameDimensionsChanged " + width + " " + height + " " + rotation);
+                        Log.i(TAG, "Participant onFrameDimensionsChanged " + width + " " +
+                                height + " " + rotation);
                     }
 
                 });
@@ -749,30 +786,41 @@ public class  ConversationActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onVideoTrackRemoved(Conversation conversation, Participant participant, VideoTrack videoTrack) {
+            public void onVideoTrackRemoved(Conversation conversation,
+                                            Participant participant,
+                                            VideoTrack videoTrack) {
                 Log.i(TAG, "onVideoTrackRemoved " + participant.getIdentity());
-                conversationStatusTextView.setText("onVideoTrackRemoved " + participant.getIdentity());
+                conversationStatusTextView.setText("onVideoTrackRemoved " +
+                        participant.getIdentity());
                 participantContainer.removeAllViews();
 
             }
 
             @Override
-            public void onAudioTrackAdded(Conversation conversation, Participant participant, AudioTrack audioTrack) {
+            public void onAudioTrackAdded(Conversation conversation,
+                                          Participant participant,
+                                          AudioTrack audioTrack) {
                 Log.i(TAG, "onAudioTrackAdded " + participant.getIdentity());
             }
 
             @Override
-            public void onAudioTrackRemoved(Conversation conversation, Participant participant, AudioTrack audioTrack) {
+            public void onAudioTrackRemoved(Conversation conversation,
+                                            Participant participant,
+                                            AudioTrack audioTrack) {
                 Log.i(TAG, "onAudioTrackRemoved " + participant.getIdentity());
             }
 
             @Override
-            public void onTrackEnabled(Conversation conversation, Participant participant, MediaTrack mediaTrack) {
+            public void onTrackEnabled(Conversation conversation,
+                                       Participant participant,
+                                       MediaTrack mediaTrack) {
                 Log.i(TAG, "onTrackEnabled " + participant.getIdentity());
             }
 
             @Override
-            public void onTrackDisabled(Conversation conversation, Participant participant, MediaTrack mediaTrack) {
+            public void onTrackDisabled(Conversation conversation,
+                                        Participant participant,
+                                        MediaTrack mediaTrack) {
                 Log.i(TAG, "onTrackDisabled " + participant.getIdentity());
             }
         };
@@ -798,22 +846,26 @@ public class  ConversationActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailedToStartListening(ConversationsClient conversationsClient, TwilioConversationsException e) {
+            public void onFailedToStartListening(ConversationsClient conversationsClient,
+                                                 TwilioConversationsException e) {
                 conversationStatusTextView.setText("onFailedToStartListening");
             }
 
             @Override
-            public void onIncomingInvite(ConversationsClient conversationsClient, IncomingInvite incomingInvite) {
+            public void onIncomingInvite(ConversationsClient conversationsClient,
+                                         IncomingInvite incomingInvite) {
                 conversationStatusTextView.setText("onIncomingInvite");
                 if (conversation == null) {
                     showInviteDialog(incomingInvite);
                 } else {
-                    Log.w(TAG, String.format("Conversation in progress. Invite from %s ignored", incomingInvite.getInviter()));
+                    Log.w(TAG, String.format("Conversation in progress. Invite from %s ignored",
+                            incomingInvite.getInviter()));
                 }
             }
 
             @Override
-            public void onIncomingInviteCancelled(ConversationsClient conversationsClient, IncomingInvite incomingInvite) {
+            public void onIncomingInviteCancelled(ConversationsClient conversationsClient,
+                                                  IncomingInvite incomingInvite) {
                 conversationStatusTextView.setText("onIncomingInviteCancelled");
                 alertDialog.dismiss();
                 Snackbar.make(conversationStatusTextView, "Invite from " +
@@ -866,7 +918,8 @@ public class  ConversationActivity extends AppCompatActivity {
 
     private LocalMedia setupLocalMedia() {
         LocalMedia localMedia = LocalMediaFactory.createLocalMedia(localMediaListener());
-        LocalVideoTrack localVideoTrack = LocalVideoTrackFactory.createLocalVideoTrack(cameraCapturer);
+        LocalVideoTrack localVideoTrack = LocalVideoTrackFactory
+                .createLocalVideoTrack(cameraCapturer);
         if (pauseVideo) {
             localVideoTrack.enable(false);
         }
@@ -890,9 +943,10 @@ public class  ConversationActivity extends AppCompatActivity {
 
     private void requestPermissionForCameraAndMicrophone(){
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA) ||
-                ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.RECORD_AUDIO)){
+                ActivityCompat.shouldShowRequestPermissionRationale(this,
+                        Manifest.permission.RECORD_AUDIO)){
             Toast.makeText(this,
-                    "Camera and Microphone permissions needed. Please allow in App Settings for additional functionality.",
+                    R.string.permissions_needed,
                     Toast.LENGTH_LONG).show();
         } else {
             ActivityCompat.requestPermissions(
