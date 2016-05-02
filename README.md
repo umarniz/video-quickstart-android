@@ -14,7 +14,7 @@ Use this project to get started with Twilio Video's Android SDK by [following al
 
 4) Paste the access token into ConversationActivity.java
 
-5) Run your app on an Android device
+5) Run your app on an Android device or the Android emulator
 
 6) On the same web page where you generated the token, scroll down the bottom, put in the username that you generated the access token for, and click Create Conversation. Your video conversation should start immediately! 
 
@@ -32,7 +32,7 @@ You can also see how Android's runtime permissions are implemented for access to
 
 This project is a native Android application written in Java. You will need an up-to-date version of Android Studio (at the time of this writing, 2.1.0), to build the application. You will also need version 23.0.2 of the Android build tools, which you can download through Android Studio if you do not have them installed.
 
-You should use an Android device for testing - the minimum supported Android version is 4.0.3.
+The minimum supported Android version is 4.0.3 for devices or Android emulators. You can run the quick start on an x86 Android emulator - either 32-bit or 64-bit.
 
 ## Access Tokens and Servers
 
@@ -68,7 +68,7 @@ be shown once - make sure to save this in a secure location.
 
 #### Running the Video Quickstart with ngrok
 
-Because we suggest that you run your video chat application on an Android device so that you can use the camera on the device, you'll need to provide an externally accessible URL for the app. The [ngrok](https://ngrok.com/) tool creates a publicly accessible URL that you can use to send HTTP/HTTPS traffic to a server running on your localhost. Use HTTPS to make web connections that retrieve a Twilio access token.
+If you run your video chat application on an Android device, you'll need to provide an externally accessible URL for the app. The [ngrok](https://ngrok.com/) tool creates a publicly accessible URL that you can use to send HTTP/HTTPS traffic to a server running on your localhost. Use HTTPS to make web connections that retrieve a Twilio access token.
 
 When you get a URL from ngrok, go ahead and update ConversationActivity.java with the new URL. At the very bottom is the retrieveAccessTokenfromServer() method.  If you go down this path, be sure to follow the directions in the comments in the initializeTwilioSdk() method at the top of the source file - you will need to comment out everything under "OPTION 1" and uncomment the one line under "OPTION 2". You will also need to update the code if your ngrok URL changes.
 
