@@ -492,8 +492,9 @@ public class  ConversationActivity extends AppCompatActivity {
                             });
                     setHangupAction();
                 } else {
-                    Log.e(TAG, "invalid participant call");
-                    conversationStatusTextView.setText("call participant failed");
+                    Log.e(TAG, "Failed to invite participant to conversation");
+                    conversationStatusTextView.setText(
+                            "Failed to invite participant to conversation");
                 }
             }
         };
@@ -523,7 +524,7 @@ public class  ConversationActivity extends AppCompatActivity {
                 invite.accept(localMedia, new ConversationCallback() {
                     @Override
                     public void onConversation(Conversation conversation, TwilioConversationsException e) {
-                        Log.e(TAG, "sendConversationInvite onConversation");
+                        Log.e(TAG, "Accepted conversation invite");
                         if (e == null) {
                             ConversationActivity.this.conversation = conversation;
                             conversation.setConversationListener(conversationListener());

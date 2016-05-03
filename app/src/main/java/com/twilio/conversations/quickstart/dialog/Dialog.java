@@ -13,8 +13,8 @@ public class Dialog {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
 
         alertDialogBuilder.setIcon(R.drawable.ic_call_black_24dp);
-        alertDialogBuilder.setTitle("Incoming Call");
-        alertDialogBuilder.setMessage(caller + " is calling");
+        alertDialogBuilder.setTitle("Conversation invite received");
+        alertDialogBuilder.setMessage(caller + " invited you to conversation");
         alertDialogBuilder.setPositiveButton("Accept", acceptClickListener);
         alertDialogBuilder.setNegativeButton("Reject", rejectClickListener);
         alertDialogBuilder.setCancelable(false);
@@ -26,8 +26,8 @@ public class Dialog {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
 
         alertDialogBuilder.setIcon(R.drawable.ic_call_black_24dp);
-        alertDialogBuilder.setTitle("Call Participant");
-        alertDialogBuilder.setPositiveButton("Call", callParticipantsClickListener);
+        alertDialogBuilder.setTitle("Invite Participant");
+        alertDialogBuilder.setPositiveButton("Send", callParticipantsClickListener);
         alertDialogBuilder.setNegativeButton("Cancel", cancelClickListener);
         alertDialogBuilder.setCancelable(false);
 
