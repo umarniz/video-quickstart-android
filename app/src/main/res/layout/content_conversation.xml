@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.twilio.example.quickstart.ConversationActivity"
+    tools:context="com.twilio.conversations.quickstart.activity.ConversationActivity"
     tools:showIn="@layout/activity_conversation">
 
     <FrameLayout
@@ -33,25 +33,28 @@
 
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/videoLinearLayout"
+    <RelativeLayout
+        android:id="@+id/videoLayout"
         android:layout_above="@id/status"
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <RelativeLayout
-            android:id="@+id/localContainer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
 
         <RelativeLayout
             android:id="@+id/participantContainer"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
+            android:layout_height="match_parent" />
 
-    </LinearLayout>
+
+        <RelativeLayout
+            android:id="@+id/localContainer"
+            android:layout_width="@dimen/local_video_size"
+            android:layout_height="@dimen/local_video_size"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="@dimen/local_video_margin"
+            android:layout_marginBottom="@dimen/local_video_margin"/>
+
+    </RelativeLayout>
 
 </RelativeLayout>
