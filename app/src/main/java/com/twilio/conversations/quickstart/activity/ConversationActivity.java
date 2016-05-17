@@ -754,7 +754,10 @@ public class ConversationActivity extends AppCompatActivity {
                 // Remote participant
                 participantVideoRenderer = new VideoViewRenderer(ConversationActivity.this,
                         participantContainer);
+                        
+                // Scale the remote video to fill the view group
                 participantVideoRenderer.setVideoScaleType(VideoScaleType.ASPECT_FILL);
+                
                 participantVideoRenderer.setObserver(new VideoRendererObserver() {
 
                     @Override
