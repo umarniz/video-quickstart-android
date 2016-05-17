@@ -1,8 +1,6 @@
 package com.twilio.conversations.quickstart.activity;
 
 import android.Manifest;
-import android.app.NotificationManager;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
@@ -40,21 +38,21 @@ import com.twilio.conversations.CapturerException;
 import com.twilio.conversations.Conversation;
 import com.twilio.conversations.ConversationCallback;
 import com.twilio.conversations.ConversationListener;
-import com.twilio.conversations.ConversationsClient;
-import com.twilio.conversations.ConversationsClientListener;
 import com.twilio.conversations.IncomingInvite;
 import com.twilio.conversations.LocalMedia;
 import com.twilio.conversations.LocalMediaFactory;
 import com.twilio.conversations.LocalMediaListener;
 import com.twilio.conversations.LocalVideoTrack;
 import com.twilio.conversations.LocalVideoTrackFactory;
+import com.twilio.conversations.LogLevel;
 import com.twilio.conversations.MediaTrack;
 import com.twilio.conversations.OutgoingInvite;
 import com.twilio.conversations.Participant;
 import com.twilio.conversations.ParticipantListener;
-import com.twilio.conversations.TwilioConversations;
+import com.twilio.conversations.TwilioConversationsClient;
 import com.twilio.conversations.TwilioConversationsException;
 import com.twilio.conversations.VideoRendererObserver;
+import com.twilio.conversations.VideoScaleType;
 import com.twilio.conversations.VideoTrack;
 import com.twilio.conversations.VideoViewRenderer;
 import com.twilio.conversations.quickstart.R;
@@ -63,11 +61,9 @@ import com.twilio.conversations.quickstart.dialog.Dialog;
 import java.util.HashSet;
 import java.util.Set;
 
-public class  ConversationActivity extends AppCompatActivity {
-
-    private static final String TAG = ConversationActivity.class.getName();
-
+public class ConversationActivity extends AppCompatActivity {
     private static final int CAMERA_MIC_PERMISSION_REQUEST_CODE = 1;
+    private static final String TAG = ConversationActivity.class.getName();
 
     /*
      * You must provide a Twilio AccessToken to connect to the Conversations service
@@ -77,7 +73,7 @@ public class  ConversationActivity extends AppCompatActivity {
     /*
      * Twilio Conversations Client allows a client to create or participate in a conversation.
      */
-    private ConversationsClient conversationsClient;
+    private TwilioConversationsClient conversationsClient;
 
     /*
      * A Conversation represents communication between the client and one or more participants.
@@ -220,7 +216,7 @@ public class  ConversationActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (TwilioConversations.isInitialized() &&
+        if (TwilioConversationsClient.isInitialized() &&
                 conversationsClient != null &&
                 !conversationsClient.isListening()) {
             conversationsClient.listen();
@@ -240,7 +236,7 @@ public class  ConversationActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
-        if (TwilioConversations.isInitialized() &&
+        if (TwilioConversationsClient.isInitialized() &&
                 conversationsClient != null  &&
                 conversationsClient.isListening() &&
                 conversation == null) {
@@ -311,47 +307,35 @@ public class  ConversationActivity extends AppCompatActivity {
      * Initialize the Twilio Conversations SDK
      */
     private void initializeTwilioSdk(){
-        TwilioConversations.setLogLevel(TwilioConversations.LogLevel.ERROR);
+        TwilioConversationsClient.setLogLevel(LogLevel.ERROR);
 
-        if(!TwilioConversations.isInitialized()) {
-            TwilioConversations.initialize(getApplicationContext(),
-                    new TwilioConversations.InitListener() {
-                @Override
-                public void onInitialized() {
-                    /*
-                     * Now that the SDK is initialized we create a ConversationsClient and
-                     * register for incoming calls. The TwilioAccessManager manages the lifetime
-                     * of the access token and notifies the client of token expirations.
-                     */
-                    // OPTION 1- Generate an access token from the getting started portal https://www.twilio.com/user/account/video/getting-started
-                    accessManager =
-                            TwilioAccessManagerFactory.createAccessManager(ConversationActivity.this,
-                                    TWILIO_ACCESS_TOKEN,
-                                    accessManagerListener());
-                    conversationsClient =
-                            TwilioConversations.createConversationsClient(accessManager, conversationsClientListener());
-                    // Specify the audio output to use for this conversation client
-                    conversationsClient.setAudioOutput(AudioOutput.SPEAKERPHONE);
-                    // Initialize the camera capturer and start the camera preview
-                    cameraCapturer = CameraCapturerFactory.createCameraCapturer(
-                            ConversationActivity.this,
-                            CameraCapturer.CameraSource.CAMERA_SOURCE_FRONT_CAMERA,
-                            capturerErrorListener());
-                    startPreview();
-                    // Register to receive incoming invites
-                    conversationsClient.listen();
+        if(!TwilioConversationsClient.isInitialized()) {
+            TwilioConversationsClient.initialize(getApplicationContext());
+            /*
+             * Now that the SDK is initialized we create a ConversationsClient and
+             * register for incoming calls. The TwilioAccessManager manages the lifetime
+             * of the access token and notifies the client of token expirations.
+             */
+            // OPTION 1- Generate an access token from the getting started portal https://www.twilio.com/user/account/video/getting-started
+            accessManager =
+                    TwilioAccessManagerFactory.createAccessManager(ConversationActivity.this,
+                            TWILIO_ACCESS_TOKEN,
+                            accessManagerListener());
+            conversationsClient =
+                    TwilioConversationsClient.create(accessManager, conversationsClientListener());
+            // Specify the audio output to use for this conversation client
+            conversationsClient.setAudioOutput(AudioOutput.SPEAKERPHONE);
+            // Initialize the camera capturer and start the camera preview
+            cameraCapturer = CameraCapturerFactory.createCameraCapturer(
+                    ConversationActivity.this,
+                    CameraCapturer.CameraSource.CAMERA_SOURCE_FRONT_CAMERA,
+                    capturerErrorListener());
+            startPreview();
+            // Register to receive incoming invites
+            conversationsClient.listen();
 
-                    // OPTION 2- Retrieve an access token from your own web app
-//                     retrieveAccessTokenfromServer();
-                }
-
-                @Override
-                public void onError(Exception e) {
-                    Toast.makeText(ConversationActivity.this,
-                            "Failed to initialize the Twilio Conversations SDK",
-                            Toast.LENGTH_LONG).show();
-                }
-            });
+            // OPTION 2- Retrieve an access token from your own web app
+//            retrieveAccessTokenfromServer();
         }
     }
 
@@ -412,7 +396,7 @@ public class  ConversationActivity extends AppCompatActivity {
     }
 
     private void destroyConversationsSdk() {
-        TwilioConversations.destroy();
+        TwilioConversationsClient.destroy();
     }
 
     private void disposeAccessManager() {
@@ -427,6 +411,7 @@ public class  ConversationActivity extends AppCompatActivity {
      */
     private void reset() {
         if(participantVideoRenderer != null) {
+            participantVideoRenderer.release();
             participantVideoRenderer = null;
         }
         localContainer.removeAllViews();
@@ -741,6 +726,7 @@ public class  ConversationActivity extends AppCompatActivity {
                                                  LocalVideoTrack localVideoTrack) {
                 conversationStatusTextView.setText("onLocalVideoTrackRemoved");
                 localContainer.removeAllViews();
+                localVideoRenderer.release();
             }
 
             @Override
@@ -768,6 +754,7 @@ public class  ConversationActivity extends AppCompatActivity {
                 // Remote participant
                 participantVideoRenderer = new VideoViewRenderer(ConversationActivity.this,
                         participantContainer);
+                participantVideoRenderer.setVideoScaleType(VideoScaleType.ASPECT_FILL);
                 participantVideoRenderer.setObserver(new VideoRendererObserver() {
 
                     @Override
@@ -794,6 +781,7 @@ public class  ConversationActivity extends AppCompatActivity {
                 conversationStatusTextView.setText("onVideoTrackRemoved " +
                         participant.getIdentity());
                 participantContainer.removeAllViews();
+                participantVideoRenderer.release();
 
             }
 
@@ -830,15 +818,15 @@ public class  ConversationActivity extends AppCompatActivity {
     /*
      * ConversationsClient listener
      */
-    private ConversationsClientListener conversationsClientListener() {
-        return new ConversationsClientListener() {
+    private TwilioConversationsClient.Listener conversationsClientListener() {
+        return new TwilioConversationsClient.Listener() {
             @Override
-            public void onStartListeningForInvites(ConversationsClient conversationsClient) {
+            public void onStartListeningForInvites(TwilioConversationsClient conversationsClient) {
                 conversationStatusTextView.setText("onStartListeningForInvites");
             }
 
             @Override
-            public void onStopListeningForInvites(ConversationsClient conversationsClient) {
+            public void onStopListeningForInvites(TwilioConversationsClient conversationsClient) {
                 conversationStatusTextView.setText("onStopListeningForInvites");
                 // If we are logging out let us finish the teardown process
                 if (loggingOut) {
@@ -847,13 +835,13 @@ public class  ConversationActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailedToStartListening(ConversationsClient conversationsClient,
+            public void onFailedToStartListening(TwilioConversationsClient conversationsClient,
                                                  TwilioConversationsException e) {
                 conversationStatusTextView.setText("onFailedToStartListening");
             }
 
             @Override
-            public void onIncomingInvite(ConversationsClient conversationsClient,
+            public void onIncomingInvite(TwilioConversationsClient conversationsClient,
                                          IncomingInvite incomingInvite) {
                 conversationStatusTextView.setText("onIncomingInvite");
                 if (conversation == null) {
@@ -865,7 +853,7 @@ public class  ConversationActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onIncomingInviteCancelled(ConversationsClient conversationsClient,
+            public void onIncomingInviteCancelled(TwilioConversationsClient conversationsClient,
                                                   IncomingInvite incomingInvite) {
                 conversationStatusTextView.setText("onIncomingInviteCancelled");
                 alertDialog.dismiss();
@@ -975,8 +963,8 @@ public class  ConversationActivity extends AppCompatActivity {
                                             accessToken,
                                             accessManagerListener());
                             conversationsClient =
-                                    TwilioConversations
-                                            .createConversationsClient(accessManager,
+                                    TwilioConversationsClient
+                                            .create(accessManager,
                                                     conversationsClientListener());
                             // Specify the audio output to use for this conversation client
                             conversationsClient.setAudioOutput(AudioOutput.SPEAKERPHONE);
