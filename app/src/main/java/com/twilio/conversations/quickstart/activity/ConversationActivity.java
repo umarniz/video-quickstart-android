@@ -26,32 +26,24 @@ import android.widget.Toast;
 import com.google.gson.JsonObject;
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
-import com.twilio.common.TwilioAccessManager;
-import com.twilio.common.TwilioAccessManagerFactory;
-import com.twilio.common.TwilioAccessManagerListener;
+import com.twilio.common.AccessManager;
 import com.twilio.conversations.AudioOutput;
 import com.twilio.conversations.AudioTrack;
 import com.twilio.conversations.CameraCapturer;
-import com.twilio.conversations.CameraCapturerFactory;
 import com.twilio.conversations.CapturerErrorListener;
 import com.twilio.conversations.CapturerException;
 import com.twilio.conversations.Conversation;
 import com.twilio.conversations.ConversationCallback;
-import com.twilio.conversations.ConversationListener;
 import com.twilio.conversations.IncomingInvite;
 import com.twilio.conversations.LocalMedia;
-import com.twilio.conversations.LocalMediaFactory;
-import com.twilio.conversations.LocalMediaListener;
 import com.twilio.conversations.LocalVideoTrack;
-import com.twilio.conversations.LocalVideoTrackFactory;
 import com.twilio.conversations.LogLevel;
 import com.twilio.conversations.MediaTrack;
 import com.twilio.conversations.OutgoingInvite;
 import com.twilio.conversations.Participant;
-import com.twilio.conversations.ParticipantListener;
 import com.twilio.conversations.TwilioConversationsClient;
 import com.twilio.conversations.TwilioConversationsException;
-import com.twilio.conversations.VideoRendererObserver;
+import com.twilio.conversations.VideoRenderer;
 import com.twilio.conversations.VideoScaleType;
 import com.twilio.conversations.VideoTrack;
 import com.twilio.conversations.VideoViewRenderer;
@@ -100,7 +92,7 @@ public class ConversationActivity extends AppCompatActivity {
     private ViewGroup localContainer;
     private ViewGroup participantContainer;
     private TextView conversationStatusTextView;
-    private TwilioAccessManager accessManager;
+    private AccessManager accessManager;
     private CameraCapturer cameraCapturer;
     private FloatingActionButton callActionFab;
     private FloatingActionButton switchCameraActionFab;
@@ -317,17 +309,15 @@ public class ConversationActivity extends AppCompatActivity {
              * of the access token and notifies the client of token expirations.
              */
             // OPTION 1- Generate an access token from the getting started portal https://www.twilio.com/user/account/video/getting-started
-            accessManager =
-                    TwilioAccessManagerFactory.createAccessManager(ConversationActivity.this,
-                            TWILIO_ACCESS_TOKEN,
-                            accessManagerListener());
+            accessManager = AccessManager.create(ConversationActivity.this,
+                    TWILIO_ACCESS_TOKEN,
+                    accessManagerListener());
             conversationsClient =
                     TwilioConversationsClient.create(accessManager, conversationsClientListener());
             // Specify the audio output to use for this conversation client
             conversationsClient.setAudioOutput(AudioOutput.SPEAKERPHONE);
             // Initialize the camera capturer and start the camera preview
-            cameraCapturer = CameraCapturerFactory.createCameraCapturer(
-                    ConversationActivity.this,
+            cameraCapturer = CameraCapturer.create(ConversationActivity.this,
                     CameraCapturer.CameraSource.CAMERA_SOURCE_FRONT_CAMERA,
                     capturerErrorListener());
             startPreview();
@@ -456,10 +446,11 @@ public class ConversationActivity extends AppCompatActivity {
                     LocalMedia localMedia = setupLocalMedia();
 
                     // Create outgoing invite
-                    outgoingInvite = conversationsClient.sendConversationInvite(participants,
+                    outgoingInvite = conversationsClient.inviteToConversation(participants,
                             localMedia, new ConversationCallback() {
                                 @Override
-                                public void onConversation(Conversation conversation, TwilioConversationsException e) {
+                                public void onConversation(Conversation conversation,
+                                                           TwilioConversationsException e) {
                                     if (e == null) {
                                         // Participant has accepted invite, we are in active conversation
                                         ConversationActivity.this.conversation = conversation;
@@ -668,8 +659,8 @@ public class ConversationActivity extends AppCompatActivity {
     /*
      * Conversation Listener
      */
-    private ConversationListener conversationListener() {
-        return new ConversationListener() {
+    private Conversation.Listener conversationListener() {
+        return new Conversation.Listener() {
             @Override
             public void onParticipantConnected(Conversation conversation, Participant participant) {
                 conversationStatusTextView.setText("onParticipantConnected " + participant.getIdentity());
@@ -710,14 +701,15 @@ public class ConversationActivity extends AppCompatActivity {
     /*
      * LocalMedia listener
      */
-    private LocalMediaListener localMediaListener(){
-        return new LocalMediaListener() {
+    private LocalMedia.Listener localMediaListener(){
+        return new LocalMedia.Listener() {
             @Override
             public void onLocalVideoTrackAdded(LocalMedia localMedia,
                                                LocalVideoTrack localVideoTrack) {
                 conversationStatusTextView.setText("onLocalVideoTrackAdded");
                 localVideoRenderer = new VideoViewRenderer(ConversationActivity.this,
                         localContainer);
+                localVideoRenderer.applyZOrder(true);
                 localVideoTrack.addRenderer(localVideoRenderer);
             }
 
@@ -741,8 +733,8 @@ public class ConversationActivity extends AppCompatActivity {
     /*
      * Participant listener
      */
-    private ParticipantListener participantListener() {
-        return new ParticipantListener() {
+    private Participant.Listener participantListener() {
+        return new Participant.Listener() {
             @Override
             public void onVideoTrackAdded(Conversation conversation,
                                           Participant participant,
@@ -754,11 +746,11 @@ public class ConversationActivity extends AppCompatActivity {
                 // Remote participant
                 participantVideoRenderer = new VideoViewRenderer(ConversationActivity.this,
                         participantContainer);
-                        
+
                 // Scale the remote video to fill the view group
                 participantVideoRenderer.setVideoScaleType(VideoScaleType.ASPECT_FILL);
-                
-                participantVideoRenderer.setObserver(new VideoRendererObserver() {
+
+                participantVideoRenderer.setObserver(new VideoRenderer.Observer() {
 
                     @Override
                     public void onFirstFrame() {
@@ -882,22 +874,22 @@ public class ConversationActivity extends AppCompatActivity {
     /*
      * AccessManager listener
      */
-    private TwilioAccessManagerListener accessManagerListener() {
-        return new TwilioAccessManagerListener() {
+    private AccessManager.Listener accessManagerListener() {
+        return new AccessManager.Listener() {
             @Override
-            public void onTokenExpired(TwilioAccessManager twilioAccessManager) {
+            public void onTokenExpired(AccessManager twilioAccessManager) {
                 conversationStatusTextView.setText("onAccessManagerTokenExpire");
 
             }
 
             @Override
-            public void onTokenUpdated(TwilioAccessManager twilioAccessManager) {
+            public void onTokenUpdated(AccessManager twilioAccessManager) {
                 conversationStatusTextView.setText("onTokenUpdated");
 
             }
 
             @Override
-            public void onError(TwilioAccessManager twilioAccessManager, String s) {
+            public void onError(AccessManager twilioAccessManager, String s) {
                 conversationStatusTextView.setText("onError");
             }
         };
@@ -909,9 +901,8 @@ public class ConversationActivity extends AppCompatActivity {
      */
 
     private LocalMedia setupLocalMedia() {
-        LocalMedia localMedia = LocalMediaFactory.createLocalMedia(localMediaListener());
-        LocalVideoTrack localVideoTrack = LocalVideoTrackFactory
-                .createLocalVideoTrack(cameraCapturer);
+        LocalMedia localMedia = new LocalMedia(localMediaListener());
+        LocalVideoTrack localVideoTrack = new LocalVideoTrack(cameraCapturer);
         if (pauseVideo) {
             localVideoTrack.enable(false);
         }
@@ -961,10 +952,9 @@ public class ConversationActivity extends AppCompatActivity {
                             String accessToken = result.get("token").getAsString();
 
                             setTitle(identity);
-                            accessManager =
-                                    TwilioAccessManagerFactory.createAccessManager(ConversationActivity.this,
-                                            accessToken,
-                                            accessManagerListener());
+                            accessManager = AccessManager.create(ConversationActivity.this,
+                                    accessToken,
+                                    accessManagerListener());
                             conversationsClient =
                                     TwilioConversationsClient
                                             .create(accessManager,
@@ -972,8 +962,7 @@ public class ConversationActivity extends AppCompatActivity {
                             // Specify the audio output to use for this conversation client
                             conversationsClient.setAudioOutput(AudioOutput.SPEAKERPHONE);
                             // Initialize the camera capturer and start the camera preview
-                            cameraCapturer = CameraCapturerFactory.createCameraCapturer(
-                                    ConversationActivity.this,
+                            cameraCapturer = CameraCapturer.create(ConversationActivity.this,
                                     CameraCapturer.CameraSource.CAMERA_SOURCE_FRONT_CAMERA,
                                     capturerErrorListener());
                             startPreview();
