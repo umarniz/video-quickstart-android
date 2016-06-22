@@ -32,7 +32,7 @@ You can also see how Android's runtime permissions are implemented for access to
 
 This project is a native Android application written in Java. You will need an up-to-date version of Android Studio (at the time of this writing, 2.1.0), to build the application. You will also need version 23.0.2 of the Android build tools, which you can download through Android Studio if you do not have them installed.
 
-The minimum supported Android version is 4.0.3 for devices or Android emulators. You can run the quick start on an x86 Android emulator - either 32-bit or 64-bit.
+The minimum supported Android version is 4.1 for devices or Android emulators. You can run the quick start on an x86 Android emulator - either 32-bit or 64-bit.
 
 ## Access Tokens and Servers
 
