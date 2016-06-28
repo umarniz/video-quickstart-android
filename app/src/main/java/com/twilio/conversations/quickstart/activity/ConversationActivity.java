@@ -1,6 +1,7 @@
 package com.twilio.conversations.quickstart.activity;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
@@ -100,6 +101,7 @@ public class ConversationActivity extends AppCompatActivity {
     private FloatingActionButton muteActionFab;
     private FloatingActionButton speakerActionFab;
     private android.support.v7.app.AlertDialog alertDialog;
+    private AudioManager audioManager;
 
     private boolean muteMicrophone;
     private boolean pauseVideo;
@@ -132,6 +134,11 @@ public class ConversationActivity extends AppCompatActivity {
          * Enable changing the volume using the up/down keys during a conversation
          */
         setVolumeControlStream(AudioManager.STREAM_VOICE_CALL);
+
+        /*
+         * Needed for setting/abandoning audio focus during call
+         */
+        audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
 
         /*
          * Check camera and microphone permissions. Needed in Android M.
@@ -346,6 +353,7 @@ public class ConversationActivity extends AppCompatActivity {
         } else if(outgoingInvite != null){
             outgoingInvite.cancel();
         }
+        setAudioFocus(false);
     }
 
     private boolean isConversationOngoing() {
@@ -444,6 +452,7 @@ public class ConversationActivity extends AppCompatActivity {
                     participants.add(participant);
                     // Create local media
                     LocalMedia localMedia = setupLocalMedia();
+                    setAudioFocus(true);
 
                     // Create outgoing invite
                     outgoingInvite = conversationsClient.inviteToConversation(participants,
@@ -496,6 +505,7 @@ public class ConversationActivity extends AppCompatActivity {
                  * Accept incoming invite
                  */
                 LocalMedia localMedia = setupLocalMedia();
+                setAudioFocus(true);
 
                 invite.accept(localMedia, new ConversationCallback() {
                     @Override
@@ -976,5 +986,26 @@ public class ConversationActivity extends AppCompatActivity {
                         }
                     }
                 });
+    }
+
+    private int savedAudioMode = AudioManager.MODE_INVALID;
+    private void setAudioFocus(boolean setFocus) {
+        if (audioManager != null) {
+            if (setFocus) {
+                savedAudioMode = audioManager.getMode();
+                // Request audio focus before making any device switch.
+                audioManager.requestAudioFocus(null, AudioManager.STREAM_VOICE_CALL,
+                        AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+
+                // Start by setting MODE_IN_COMMUNICATION as default audio mode. It is
+                // required to be in this mode when playout and/or recording starts for
+                // best possible VoIP performance.
+                // Some devices have difficulties with speaker mode if this is not set.
+                audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+            } else {
+                audioManager.setMode(savedAudioMode);
+                audioManager.abandonAudioFocus(null);
+            }
+        }
     }
 }
