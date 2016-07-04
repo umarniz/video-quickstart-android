@@ -252,6 +252,13 @@ public class ConversationActivity extends AppCompatActivity {
             wasLive = true;
         }
     }
+    
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        TwilioConversationsClient.destroy();
+    }
+
 
     /*
      * The initial state when there is no active conversation.
