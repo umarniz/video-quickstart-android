@@ -323,7 +323,7 @@ public class ConversationActivity extends AppCompatActivity {
              * of the access token and notifies the client of token expirations.
              */
             // OPTION 1- Generate an access token from the getting started portal https://www.twilio.com/user/account/video/getting-started
-            accessManager = AccessManager.create(ConversationActivity.this,
+            accessManager = new AccessManager(ConversationActivity.this,
                     TWILIO_ACCESS_TOKEN,
                     accessManagerListener());
             conversationsClient =
@@ -969,7 +969,7 @@ public class ConversationActivity extends AppCompatActivity {
                             String accessToken = result.get("token").getAsString();
 
                             setTitle(identity);
-                            accessManager = AccessManager.create(ConversationActivity.this,
+                            accessManager = new AccessManager(ConversationActivity.this,
                                     accessToken,
                                     accessManagerListener());
                             conversationsClient =
