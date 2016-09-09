@@ -1,11 +1,11 @@
-package com.twilio.conversations.quickstart.dialog;
+package com.twilio.video.quickstart.dialog;
 
 import android.content.Context;
 import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
 import android.widget.EditText;
 
-import com.twilio.conversations.quickstart.R;
+import com.twilio.video.quickstart.R;
 
 public class Dialog {
 

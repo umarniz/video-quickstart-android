@@ -1,4 +1,4 @@
-package com.twilio.conversations.quickstart.activity;
+package com.twilio.video.quickstart.activity;
 
 import android.Manifest;
 import android.content.Context;
@@ -22,8 +22,8 @@ import com.google.gson.JsonObject;
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
 import com.twilio.common.AccessManager;
-import com.twilio.conversations.quickstart.R;
-import com.twilio.conversations.quickstart.dialog.Dialog;
+import com.twilio.video.quickstart.R;
+import com.twilio.video.quickstart.dialog.Dialog;
 import com.twilio.video.AudioTrack;
 import com.twilio.video.CameraCapturer;
 import com.twilio.video.ConnectOptions;
@@ -47,8 +47,7 @@ public class VideoActivity extends AppCompatActivity {
     /*
      * You must provide a Twilio AccessToken to connect to the Video service
      */
-    //private static final String TWILIO_ACCESS_TOKEN = "TWILIO_ACCESS_TOKEN";
-    private static final String TWILIO_ACCESS_TOKEN = "eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCIsICJjdHkiOiAidHdpbGlvLWZwYTt2PTEifQ.eyJpc3MiOiAiU0s2NzRiMTg4NjlmMTFmYWNjNjY1YTY1ZmQ0ZGRmMmY0ZiIsICJncmFudHMiOiB7InJ0YyI6IHsiY29uZmlndXJhdGlvbl9wcm9maWxlX3NpZCI6ICJWUzNmNzVlMGYxNGU3YzhiMjA5MzhmYzUwOTJlODJmMjNhIn0sICJpZGVudGl0eSI6ICJqb2phIn0sICJqdGkiOiAiU0s2NzRiMTg4NjlmMTFmYWNjNjY1YTY1ZmQ0ZGRmMmY0Zi0xNDczNDU0Nzg5IiwgInN1YiI6ICJBQzk2Y2NjOTA0NzUzYjMzNjRmMjQyMTFlOGQ5NzQ2YTkzIiwgImV4cCI6IDE0NzM0NjQ3ODh9.GBv-7ViFGYR-CyU0h35jIDr3ySqvK-gTVOCy_47zab4";
+    private static final String TWILIO_ACCESS_TOKEN = "TWILIO_ACCESS_TOKEN";
 
     /*
      * Twilio Video Client allows a client to create or connect to a room.
