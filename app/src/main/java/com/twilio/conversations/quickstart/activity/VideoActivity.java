@@ -6,10 +6,14 @@ import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -76,11 +80,10 @@ public class VideoActivity extends AppCompatActivity {
     private LocalMedia localMedia;
     private LocalAudioTrack localAudioTrack;
     private LocalVideoTrack localVideoTrack;
-    private FloatingActionButton joinRoomActionFab;
+    private FloatingActionButton connectActionFab;
     private FloatingActionButton switchCameraActionFab;
     private FloatingActionButton localVideoActionFab;
     private FloatingActionButton muteActionFab;
-    private FloatingActionButton speakerActionFab;
     private android.support.v7.app.AlertDialog alertDialog;
     private AudioManager audioManager;
 
@@ -106,11 +109,10 @@ public class VideoActivity extends AppCompatActivity {
         thumbnailVideoView = (VideoView) findViewById(R.id.thumbnail_video_view);
         videoStatusTextView = (TextView) findViewById(R.id.video_status_textview);
 
-        joinRoomActionFab = (FloatingActionButton) findViewById(R.id.call_action_fab);
+        connectActionFab = (FloatingActionButton) findViewById(R.id.connect_action_fab);
         switchCameraActionFab = (FloatingActionButton) findViewById(R.id.switch_camera_action_fab);
         localVideoActionFab = (FloatingActionButton) findViewById(R.id.local_video_action_fab);
         muteActionFab = (FloatingActionButton) findViewById(R.id.mute_action_fab);
-        speakerActionFab = (FloatingActionButton) findViewById(R.id.speaker_action_fab);
 
         /*
          * Enable changing the volume using the up/down keys during a conversation
@@ -142,6 +144,59 @@ public class VideoActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.quickstart_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_log_out:
+                /*
+                 * All conversations need to be ended before tearing down the SDK
+                 */
+                loggingOut = true;
+                if (room != null) {
+                    room.disconnect();
+                } else {
+                    finish();
+                }
+
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (primaryVideoView != null) {
+            primaryVideoView.release();
+            primaryVideoView = null;
+        }
+        if (thumbnailVideoView != null) {
+            thumbnailVideoView.release();
+            thumbnailVideoView = null;
+        }
+        if (localMedia != null) {
+            localMedia.removeVideoTrack(localVideoTrack);
+            localMedia.removeAudioTrack(localAudioTrack);
+            localMedia.release();
+            localMedia = null;
+        }
+        if (accessManager != null) {
+            accessManager.dispose();
+            accessManager = null;
+        }
+        if (videoClient != null) {
+            videoClient.release();
+            videoClient = null;
+        }
+    }
 
     private boolean checkPermissionForCameraAndMicrophone(){
         int resultCamera = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
@@ -196,43 +251,50 @@ public class VideoActivity extends AppCompatActivity {
     }
 
     private void connectToRoom(String roomName) {
-        //setAudioFocus(true);
+        setAudioFocus(true);
         ConnectOptions connectOptions = new ConnectOptions.Builder()
                 .name(roomName)
                 .localMedia(localMedia)
                 .build();
         room = videoClient.connect(connectOptions, createRoomListener());
-
+        setDisconnectAction();
     }
 
     /*
      * The initial state when there is no active conversation.
      */
     private void setCallAction() {
-        joinRoomActionFab.setImageDrawable(ContextCompat.getDrawable(this,
+        connectActionFab.setImageDrawable(ContextCompat.getDrawable(this,
                 R.drawable.ic_call_white_24px));
-        joinRoomActionFab.show();
-        joinRoomActionFab.setOnClickListener(joinRoomActionClickListener());
+        connectActionFab.show();
+        connectActionFab.setOnClickListener(connectActionClickListener());
         switchCameraActionFab.show();
         switchCameraActionFab.setOnClickListener(switchCameraClickListener());
         localVideoActionFab.show();
         localVideoActionFab.setOnClickListener(localVideoClickListener());
         muteActionFab.show();
         muteActionFab.setOnClickListener(muteClickListener());
-        speakerActionFab.hide();
+    }
+
+    /*
+     * The actions performed during hangup.
+     */
+    private void setDisconnectAction() {
+        connectActionFab.setImageDrawable(ContextCompat.getDrawable(this,
+                R.drawable.ic_call_end_white_24px));
+        connectActionFab.show();
+        connectActionFab.setOnClickListener(hangupClickListener());
     }
 
     /*
      * Creates an outgoing conversation UI dialog
      */
-    private void showCreateRoomDialog() {
+    private void showConnectDialog() {
         EditText roomEditText = new EditText(this);
         alertDialog = Dialog.createCreateRoomsDialog(roomEditText,
-                createRoomClickListener(roomEditText), cancelRoomDialogClickListener(), this);
+                connectClickListener(roomEditText), cancelRoomDialogClickListener(), this);
         alertDialog.show();
     }
-
-
 
     private void addParticipant(Participant participant) {
         // TODO support multiple participants
@@ -305,8 +367,18 @@ public class VideoActivity extends AppCompatActivity {
             public void onDisconnected(Room room, VideoException e) {
                 videoStatusTextView.setText("Disconnected from " + room.getName());
                 VideoActivity.this.room = null;
-                setCallAction();
-                // TODO: set local participant media to primary view
+                setAudioFocus(false);
+                if (loggingOut) {
+                    finish();
+                    loggingOut = false;
+                } else {
+                    setCallAction();
+
+                    thumbnailVideoView.setVisibility(View.GONE);
+                    localVideoTrack.removeRenderer(thumbnailVideoView);
+                    primaryVideoView.setMirror(true);
+                    localVideoTrack.addRenderer(primaryVideoView);
+                }
             }
 
             @Override
@@ -373,7 +445,7 @@ public class VideoActivity extends AppCompatActivity {
         };
     }
 
-    private DialogInterface.OnClickListener createRoomClickListener(final EditText roomEditText) {
+    private DialogInterface.OnClickListener connectClickListener(final EditText roomEditText) {
         return new DialogInterface.OnClickListener() {
 
             @Override
@@ -386,11 +458,23 @@ public class VideoActivity extends AppCompatActivity {
         };
     }
 
-    private View.OnClickListener joinRoomActionClickListener() {
+    private View.OnClickListener hangupClickListener() {
+        return new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (room != null) {
+                    room.disconnect();
+                }
+                setCallAction();
+            }
+        };
+    }
+
+    private View.OnClickListener connectActionClickListener() {
         return new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                showCreateRoomDialog();
+                showConnectDialog();
             }
         };
     }
@@ -420,7 +504,24 @@ public class VideoActivity extends AppCompatActivity {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                if (localVideoTrack != null) {
+                    boolean enable = !localVideoTrack.isEnabled();
+                    if (!localVideoTrack.enable(enable)) {
+                        videoStatusTextView.setText("Failed to "+
+                                (enable ? "enable" : "disable") + " local video");
+                        return;
+                    }
+                    int icon = 0;
+                    if (enable) {
+                        icon = R.drawable.ic_videocam_green_24px;
+                        switchCameraActionFab.show();
+                    } else {
+                        icon = R.drawable.ic_videocam_off_red_24px;
+                        switchCameraActionFab.hide();
+                    }
+                    localVideoActionFab.setImageDrawable(
+                            ContextCompat.getDrawable(VideoActivity.this, icon));
+                }
             }
         };
     }
@@ -429,8 +530,43 @@ public class VideoActivity extends AppCompatActivity {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                /*
+                 * Enable/disable local audio track
+                 */
+                if (localAudioTrack != null) {
+                    boolean enable = !localAudioTrack.isEnabled();
+                    if (!localAudioTrack.enable(enable)) {
+                        videoStatusTextView.setText("Failed to "+
+                                (enable ? "enable" : "disable") + " audio track");
+                        return;
+                    }
+                    int icon = enable ? R.drawable.ic_mic_green_24px :
+                            R.drawable.ic_mic_off_red_24px;
+                    muteActionFab.setImageDrawable(ContextCompat.getDrawable(
+                            VideoActivity.this, icon));
+                }
             }
         };
+    }
+
+    private int savedAudioMode = AudioManager.MODE_INVALID;
+    private void setAudioFocus(boolean setFocus) {
+        if (audioManager != null) {
+            if (setFocus) {
+                savedAudioMode = audioManager.getMode();
+                // Request audio focus before making any device switch.
+                audioManager.requestAudioFocus(null, AudioManager.STREAM_VOICE_CALL,
+                        AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+
+                // Start by setting MODE_IN_COMMUNICATION as default audio mode. It is
+                // required to be in this mode when playout and/or recording starts for
+                // best possible VoIP performance.
+                // Some devices have difficulties with speaker mode if this is not set.
+                audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+            } else {
+                audioManager.setMode(savedAudioMode);
+                audioManager.abandonAudioFocus(null);
+            }
+        }
     }
 }
