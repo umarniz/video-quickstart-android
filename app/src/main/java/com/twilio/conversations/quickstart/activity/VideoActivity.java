@@ -5,12 +5,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
+import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -19,7 +18,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.JsonObject;
+import com.koushikdutta.async.future.FutureCallback;
+import com.koushikdutta.ion.Ion;
 import com.twilio.common.AccessManager;
+import com.twilio.conversations.quickstart.R;
 import com.twilio.conversations.quickstart.dialog.Dialog;
 import com.twilio.video.AudioTrack;
 import com.twilio.video.CameraCapturer;
@@ -34,7 +37,6 @@ import com.twilio.video.VideoClient;
 import com.twilio.video.VideoException;
 import com.twilio.video.VideoTrack;
 import com.twilio.video.VideoView;
-import com.twilio.conversations.quickstart.R;
 
 import java.util.Map;
 
@@ -43,30 +45,24 @@ public class VideoActivity extends AppCompatActivity {
     private static final String TAG = VideoActivity.class.getName();
 
     /*
-     * You must provide a Twilio AccessToken to connect to the Conversations service
+     * You must provide a Twilio AccessToken to connect to the Video service
      */
     //private static final String TWILIO_ACCESS_TOKEN = "TWILIO_ACCESS_TOKEN";
     private static final String TWILIO_ACCESS_TOKEN = "eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCIsICJjdHkiOiAidHdpbGlvLWZwYTt2PTEifQ.eyJpc3MiOiAiU0s2NzRiMTg4NjlmMTFmYWNjNjY1YTY1ZmQ0ZGRmMmY0ZiIsICJncmFudHMiOiB7InJ0YyI6IHsiY29uZmlndXJhdGlvbl9wcm9maWxlX3NpZCI6ICJWUzNmNzVlMGYxNGU3YzhiMjA5MzhmYzUwOTJlODJmMjNhIn0sICJpZGVudGl0eSI6ICJqb2phIn0sICJqdGkiOiAiU0s2NzRiMTg4NjlmMTFmYWNjNjY1YTY1ZmQ0ZGRmMmY0Zi0xNDczNDU0Nzg5IiwgInN1YiI6ICJBQzk2Y2NjOTA0NzUzYjMzNjRmMjQyMTFlOGQ5NzQ2YTkzIiwgImV4cCI6IDE0NzM0NjQ3ODh9.GBv-7ViFGYR-CyU0h35jIDr3ySqvK-gTVOCy_47zab4";
 
     /*
-     * Twilio Conversations Client allows a client to create or participate in a conversation.
+     * Twilio Video Client allows a client to create or connect to a room.
      */
     private VideoClient videoClient;
 
     /*
-     * A Conversation represents communication between the client and one or more participants.
+     * A Room represents communication between the client and one or more participants.
      */
     private Room room;
 
     /*
-     * An OutgoingInvite represents an invitation to start or join a conversation with one or
-     * more participants
-     */
-    //private OutgoingInvite outgoingInvite;
-
-    /*
-     * A VideoViewRenderer receives frames from a local or remote video track and renders
-     * the frames to a provided view
+     * A VideoView receives frames from a local or remote video track and renders them
+     * to associated view.
      */
     private VideoView primaryVideoView;
     private VideoView thumbnailVideoView;
@@ -86,12 +82,6 @@ public class VideoActivity extends AppCompatActivity {
     private FloatingActionButton muteActionFab;
     private android.support.v7.app.AlertDialog alertDialog;
     private AudioManager audioManager;
-
-    private boolean muteMicrophone;
-    private boolean pauseVideo;
-
-    private boolean wasPreviewing;
-    private boolean wasLive;
 
     private boolean loggingOut;
 
@@ -132,7 +122,7 @@ public class VideoActivity extends AppCompatActivity {
         } else {
             createLocalMedia();
             /*
-             * Initialize the Twilio Conversations SDK
+             * Create the Twilio Video Client
              */
             createVideoClient();
         }
@@ -140,7 +130,7 @@ public class VideoActivity extends AppCompatActivity {
         /*
          * Set the initial state of the UI
          */
-        setCallAction();
+        setConnectAction();
 
     }
 
@@ -156,7 +146,7 @@ public class VideoActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.action_log_out:
                 /*
-                 * All conversations need to be ended before tearing down the SDK
+                 * All rooms need to be disconnected before tearing down the SDK
                  */
                 loggingOut = true;
                 if (room != null) {
@@ -236,11 +226,12 @@ public class VideoActivity extends AppCompatActivity {
 
     private void createVideoClient() {
         /*
-         * Now that the SDK is initialized we create a ConversationsClient and
-         * register for incoming calls. The TwilioAccessManager manages the lifetime
+         * First we create VideoClient that allows us to create new rooms or
+         * connect to existing ones. The AccessManager manages the lifetime
          * of the access token and notifies the client of token expirations.
          */
-        // OPTION 1- Generate an access token from the getting started portal https://www.twilio.com/user/account/video/getting-started
+        // OPTION 1- Generate an access token from the getting started portal
+        // https://www.twilio.com/user/account/video/getting-started
         accessManager = new AccessManager(VideoActivity.this,
                 TWILIO_ACCESS_TOKEN,
                 accessManagerListener());
@@ -263,7 +254,7 @@ public class VideoActivity extends AppCompatActivity {
     /*
      * The initial state when there is no active conversation.
      */
-    private void setCallAction() {
+    private void setConnectAction() {
         connectActionFab.setImageDrawable(ContextCompat.getDrawable(this,
                 R.drawable.ic_call_white_24px));
         connectActionFab.show();
@@ -277,7 +268,7 @@ public class VideoActivity extends AppCompatActivity {
     }
 
     /*
-     * The actions performed during hangup.
+     * The actions performed during disconnect.
      */
     private void setDisconnectAction() {
         connectActionFab.setImageDrawable(ContextCompat.getDrawable(this,
@@ -287,31 +278,48 @@ public class VideoActivity extends AppCompatActivity {
     }
 
     /*
-     * Creates an outgoing conversation UI dialog
+     * Creates an connect UI dialog
      */
     private void showConnectDialog() {
         EditText roomEditText = new EditText(this);
-        alertDialog = Dialog.createCreateRoomsDialog(roomEditText,
-                connectClickListener(roomEditText), cancelRoomDialogClickListener(), this);
+        alertDialog = Dialog.createConnectDialog(roomEditText,
+                connectClickListener(roomEditText), cancelConnectDialogClickListener(), this);
         alertDialog.show();
     }
 
+    /*
+     * Called when participant joins the room
+     */
     private void addParticipant(Participant participant) {
-        // TODO support multiple participants
+        /*
+         * In quickstart, we are only supporting one additional participant per room
+         */
         if (thumbnailVideoView.getVisibility() == View.VISIBLE) {
             Toast.makeText(this, "Do not support multiple participants yet", Toast.LENGTH_LONG)
                     .show();
             return;
         }
         videoStatusTextView.setText("Participant "+participant.getIdentity()+ " joined");
+        /*
+         * Stop rendering local video track in primary view and move it to thumbnail view
+         */
         localVideoTrack.removeRenderer(primaryVideoView);
         thumbnailVideoView.setVisibility(View.VISIBLE);
         localVideoTrack.addRenderer(thumbnailVideoView);
+        /*
+         * Start listening for participant media events
+         */
         participant.getMedia().setListener(createParticipantMediaListener());
     }
 
+    /*
+     * Called when participant leaves the room
+     */
     private void removeParticipant(Participant participant) {
         videoStatusTextView.setText("Participant "+participant.getIdentity()+ " left.");
+        /*
+         * Show local video in primary view
+         */
         thumbnailVideoView.setVisibility(View.GONE);
         localVideoTrack.removeRenderer(thumbnailVideoView);
         primaryVideoView.setMirror(true);
@@ -350,10 +358,14 @@ public class VideoActivity extends AppCompatActivity {
             @Override
             public void onConnected(Room room) {
                 videoStatusTextView.setText("Connected to " + room.getName());
+                setTitle(room.getName());
 
                 for (Map.Entry<String, Participant> entry : room.getParticipants().entrySet()) {
+                    /*
+                     * For the sake of simplicity, we only support
+                     * one additional participant per room
+                     */
                     addParticipant(entry.getValue());
-                    // TODO just grabbing first participant...need to support multiple participants
                     break;
                 }
             }
@@ -372,8 +384,11 @@ public class VideoActivity extends AppCompatActivity {
                     finish();
                     loggingOut = false;
                 } else {
-                    setCallAction();
+                    setConnectAction();
 
+                    /*
+                     * Show local video in primary view
+                     */
                     thumbnailVideoView.setVisibility(View.GONE);
                     localVideoTrack.removeRenderer(thumbnailVideoView);
                     primaryVideoView.setMirror(true);
@@ -462,10 +477,13 @@ public class VideoActivity extends AppCompatActivity {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                /*
+                 * Disconnect from room
+                 */
                 if (room != null) {
                     room.disconnect();
                 }
-                setCallAction();
+                setConnectAction();
             }
         };
     }
@@ -479,11 +497,11 @@ public class VideoActivity extends AppCompatActivity {
         };
     }
 
-    private DialogInterface.OnClickListener cancelRoomDialogClickListener() {
+    private DialogInterface.OnClickListener cancelConnectDialogClickListener() {
         return new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                setCallAction();
+                setConnectAction();
                 alertDialog.dismiss();
             }
         };
@@ -504,6 +522,9 @@ public class VideoActivity extends AppCompatActivity {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                /*
+                 * Enable/disable local video track
+                 */
                 if (localVideoTrack != null) {
                     boolean enable = !localVideoTrack.isEnabled();
                     if (!localVideoTrack.enable(enable)) {
@@ -547,6 +568,30 @@ public class VideoActivity extends AppCompatActivity {
                 }
             }
         };
+    }
+
+    private void retrieveAccessTokenfromServer() {
+        Ion.with(this)
+                .load("http://localhost:8000/token.php")
+                .asJsonObject()
+                .setCallback(new FutureCallback<JsonObject>() {
+                    @Override
+                    public void onCompleted(Exception e, JsonObject result) {
+                        if (e == null) {
+
+                            String accessToken = result.get("token").getAsString();
+
+                            accessManager = new AccessManager(VideoActivity.this,
+                                    accessToken,
+                                    accessManagerListener());
+                            videoClient = new VideoClient(VideoActivity.this, accessManager);
+                        } else {
+                            Toast.makeText(VideoActivity.this,
+                                    R.string.error_retrieving_access_token, Toast.LENGTH_SHORT)
+                                    .show();
+                        }
+                    }
+                });
     }
 
     private int savedAudioMode = AudioManager.MODE_INVALID;
