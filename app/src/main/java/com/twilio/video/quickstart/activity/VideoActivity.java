@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -83,8 +84,6 @@ public class VideoActivity extends AppCompatActivity {
     private AudioManager audioManager;
 
     private boolean loggingOut;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -236,7 +235,7 @@ public class VideoActivity extends AppCompatActivity {
                 accessManagerListener());
         videoClient = new VideoClient(VideoActivity.this, accessManager);
         // OPTION 2- Retrieve an access token from your own web app
-//      retrieveAccessTokenfromServer();
+        // retrieveAccessTokenfromServer();
 
     }
 
@@ -246,7 +245,7 @@ public class VideoActivity extends AppCompatActivity {
                 .name(roomName)
                 .localMedia(localMedia)
                 .build();
-        room = videoClient.connect(connectOptions, createRoomListener());
+        room = videoClient.connect(connectOptions, roomListener());
         setDisconnectAction();
     }
 
@@ -291,11 +290,13 @@ public class VideoActivity extends AppCompatActivity {
      */
     private void addParticipant(Participant participant) {
         /*
-         * In quickstart, we are only supporting one additional participant per room
+         * This app only displays video for one additional participant per Room
          */
         if (thumbnailVideoView.getVisibility() == View.VISIBLE) {
-            Toast.makeText(this, "Do not support multiple participants yet", Toast.LENGTH_LONG)
-                    .show();
+            Snackbar.make(connectActionFab,
+                    "Multiple participants are not currently support in this UI",
+                    Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
             return;
         }
         videoStatusTextView.setText("Participant "+participant.getIdentity()+ " joined");
@@ -352,7 +353,7 @@ public class VideoActivity extends AppCompatActivity {
     /*
      * Room events listener
      */
-    private Room.Listener createRoomListener() {
+    private Room.Listener roomListener() {
         return new Room.Listener() {
             @Override
             public void onConnected(Room room) {
@@ -360,10 +361,6 @@ public class VideoActivity extends AppCompatActivity {
                 setTitle(room.getName());
 
                 for (Map.Entry<String, Participant> entry : room.getParticipants().entrySet()) {
-                    /*
-                     * For the sake of simplicity, we only support
-                     * one additional participant per room
-                     */
                     addParticipant(entry.getValue());
                     break;
                 }
