@@ -6,7 +6,7 @@
              android:layout_width="match_parent"
              android:layout_height="match_parent"
              android:keepScreenOn="true"
-    tools:showIn="@layout/activity_conversation">
+             tools:showIn="@layout/activity_video">
 
     <com.twilio.video.VideoView
         android:id="@+id/thumbnail_video_view"
@@ -16,13 +16,12 @@
         android:layout_width="96dp"
         android:layout_height="96dp"
         android:layout_margin="16dp"
-        android:layout_gravity="bottom|left"/>
+        android:layout_gravity="bottom|start"/>
 
     <com.twilio.video.VideoView
         android:id="@+id/primary_video_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-
 
     <LinearLayout
         android:id="@+id/status"
@@ -43,6 +42,6 @@
             android:textSize="20dp"
             android:text="@string/conversationStatus"/>
 
-    </LinearLayout>ß
+    </LinearLayout>
 
 </FrameLayout>

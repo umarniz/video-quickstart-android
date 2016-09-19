@@ -23,8 +23,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name="com.twilio.video.quickstart.activity.VideoActivity"
-            android:configChanges="orientation|screenSize"
-            android:label="quickstart">
+            android:configChanges="orientation|screenSize" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 

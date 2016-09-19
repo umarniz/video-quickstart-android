@@ -13,22 +13,21 @@ public class Dialog {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
 
         alertDialogBuilder.setIcon(R.drawable.ic_call_black_24dp);
-        alertDialogBuilder.setTitle("Connect to Room");
-        alertDialogBuilder.setPositiveButton("Send", callParticipantsClickListener);
+        alertDialogBuilder.setTitle("Connect to a room");
+        alertDialogBuilder.setPositiveButton("Connect", callParticipantsClickListener);
         alertDialogBuilder.setNegativeButton("Cancel", cancelClickListener);
         alertDialogBuilder.setCancelable(false);
 
-        setParticipantFieldInDialog(participantEditText, alertDialogBuilder, context);
+        setRoomNameFieldInDialog(participantEditText, alertDialogBuilder, context);
 
         return alertDialogBuilder.create();
     }
 
-    private static void setParticipantFieldInDialog(EditText participantEditText, AlertDialog.Builder alertDialogBuilder, Context context) {
-        // Add a participant field to the dialog
-        participantEditText.setHint("room name");
+    private static void setRoomNameFieldInDialog(EditText roomNameEditText, AlertDialog.Builder alertDialogBuilder, Context context) {
+        roomNameEditText.setHint("room name");
         int horizontalPadding = context.getResources().getDimensionPixelOffset(R.dimen.activity_horizontal_margin);
         int verticalPadding = context.getResources().getDimensionPixelOffset(R.dimen.activity_vertical_margin);
-        alertDialogBuilder.setView(participantEditText, horizontalPadding, verticalPadding, horizontalPadding, 0);
+        alertDialogBuilder.setView(roomNameEditText, horizontalPadding, verticalPadding, horizontalPadding, 0);
     }
 
 }

@@ -27,6 +27,7 @@ import com.twilio.video.quickstart.R;
 import com.twilio.video.quickstart.dialog.Dialog;
 import com.twilio.video.AudioTrack;
 import com.twilio.video.CameraCapturer;
+import com.twilio.video.CameraCapturer.CameraSource;
 import com.twilio.video.ConnectOptions;
 import com.twilio.video.LocalAudioTrack;
 import com.twilio.video.LocalMedia;
@@ -43,15 +44,14 @@ import java.util.Map;
 
 public class VideoActivity extends AppCompatActivity {
     private static final int CAMERA_MIC_PERMISSION_REQUEST_CODE = 1;
-    private static final String TAG = VideoActivity.class.getName();
 
     /*
-     * You must provide a Twilio AccessToken to connect to the Video service
+     * You must provide a Twilio Access Token to connect to the Video service
      */
     private static final String TWILIO_ACCESS_TOKEN = "TWILIO_ACCESS_TOKEN";
 
     /*
-     * Twilio Video Client allows a client to create or connect to a room.
+     * The Video Client allows a client to connect to a room
      */
     private VideoClient videoClient;
 
@@ -62,7 +62,7 @@ public class VideoActivity extends AppCompatActivity {
 
     /*
      * A VideoView receives frames from a local or remote video track and renders them
-     * to associated view.
+     * to an associated view.
      */
     private VideoView primaryVideoView;
     private VideoView thumbnailVideoView;
@@ -83,6 +83,7 @@ public class VideoActivity extends AppCompatActivity {
     private android.support.v7.app.AlertDialog alertDialog;
     private AudioManager audioManager;
 
+    private int previousAudioMode;
     private boolean loggingOut;
 
     @Override
@@ -90,9 +91,6 @@ public class VideoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video);
 
-        /*
-         * Load views from resources
-         */
         primaryVideoView = (VideoView) findViewById(R.id.primary_video_view);
         thumbnailVideoView = (VideoView) findViewById(R.id.thumbnail_video_view);
         videoStatusTextView = (TextView) findViewById(R.id.video_status_textview);
@@ -128,7 +126,7 @@ public class VideoActivity extends AppCompatActivity {
         /*
          * Set the initial state of the UI
          */
-        setConnectAction();
+        intializeUI();
 
     }
 
@@ -162,17 +160,11 @@ public class VideoActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (primaryVideoView != null) {
-            primaryVideoView.release();
-            primaryVideoView = null;
-        }
-        if (thumbnailVideoView != null) {
-            thumbnailVideoView.release();
-            thumbnailVideoView = null;
-        }
+
+        primaryVideoView.release();
+        thumbnailVideoView.release();
+
         if (localMedia != null) {
-            localMedia.removeVideoTrack(localVideoTrack);
-            localMedia.removeAudioTrack(localAudioTrack);
             localMedia.release();
             localMedia = null;
         }
@@ -180,27 +172,19 @@ public class VideoActivity extends AppCompatActivity {
             accessManager.dispose();
             accessManager = null;
         }
-        if (videoClient != null) {
-            videoClient.release();
-            videoClient = null;
-        }
     }
 
     private boolean checkPermissionForCameraAndMicrophone(){
         int resultCamera = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
         int resultMic = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
-        if ((resultCamera == PackageManager.PERMISSION_GRANTED) &&
-                (resultMic == PackageManager.PERMISSION_GRANTED)){
-            return true;
-        } else {
-            return false;
-        }
+        return resultCamera == PackageManager.PERMISSION_GRANTED &&
+               resultMic == PackageManager.PERMISSION_GRANTED;
     }
 
     private void requestPermissionForCameraAndMicrophone(){
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA) ||
                 ActivityCompat.shouldShowRequestPermissionRationale(this,
-                        Manifest.permission.RECORD_AUDIO)){
+                        Manifest.permission.RECORD_AUDIO)) {
             Toast.makeText(this,
                     R.string.permissions_needed,
                     Toast.LENGTH_LONG).show();
@@ -214,9 +198,12 @@ public class VideoActivity extends AppCompatActivity {
 
     private void createLocalMedia() {
         localMedia = LocalMedia.create(this);
+
+        // Share your microphone
         localAudioTrack = localMedia.addAudioTrack(true);
-        cameraCapturer = new CameraCapturer(this,
-                CameraCapturer.CameraSource.CAMERA_SOURCE_FRONT_CAMERA, null);
+
+        // Share your camera
+        cameraCapturer = new CameraCapturer(this, CameraSource.CAMERA_SOURCE_FRONT_CAMERA, null);
         localVideoTrack = localMedia.addVideoTrack(true, cameraCapturer);
         primaryVideoView.setMirror(true);
         localVideoTrack.addRenderer(primaryVideoView);
@@ -224,16 +211,18 @@ public class VideoActivity extends AppCompatActivity {
 
     private void createVideoClient() {
         /*
-         * First we create VideoClient that allows us to create new rooms or
-         * connect to existing ones. The AccessManager manages the lifetime
-         * of the access token and notifies the client of token expirations.
+         * Create a VideoClient allowing you to connect to a Room
+         * The AccessManager manages the lifetime of the access token and
+         * notifies the client of token expiry.
          */
+
         // OPTION 1- Generate an access token from the getting started portal
         // https://www.twilio.com/user/account/video/getting-started
         accessManager = new AccessManager(VideoActivity.this,
                 TWILIO_ACCESS_TOKEN,
                 accessManagerListener());
         videoClient = new VideoClient(VideoActivity.this, accessManager);
+
         // OPTION 2- Retrieve an access token from your own web app
         // retrieveAccessTokenfromServer();
 
@@ -242,7 +231,7 @@ public class VideoActivity extends AppCompatActivity {
     private void connectToRoom(String roomName) {
         setAudioFocus(true);
         ConnectOptions connectOptions = new ConnectOptions.Builder()
-                .name(roomName)
+                .roomName(roomName)
                 .localMedia(localMedia)
                 .build();
         room = videoClient.connect(connectOptions, roomListener());
@@ -252,7 +241,7 @@ public class VideoActivity extends AppCompatActivity {
     /*
      * The initial state when there is no active conversation.
      */
-    private void setConnectAction() {
+    private void intializeUI() {
         connectActionFab.setImageDrawable(ContextCompat.getDrawable(this,
                 R.drawable.ic_call_white_24px));
         connectActionFab.show();
@@ -272,7 +261,7 @@ public class VideoActivity extends AppCompatActivity {
         connectActionFab.setImageDrawable(ContextCompat.getDrawable(this,
                 R.drawable.ic_call_end_white_24px));
         connectActionFab.show();
-        connectActionFab.setOnClickListener(hangupClickListener());
+        connectActionFab.setOnClickListener(disconnectClickListener());
     }
 
     /*
@@ -299,7 +288,7 @@ public class VideoActivity extends AppCompatActivity {
                     .setAction("Action", null).show();
             return;
         }
-        videoStatusTextView.setText("Participant "+participant.getIdentity()+ " joined");
+        videoStatusTextView.setText("Participant "+ participant.getIdentity() + " joined");
         /*
          * Stop rendering local video track in primary view and move it to thumbnail view
          */
@@ -309,7 +298,7 @@ public class VideoActivity extends AppCompatActivity {
         /*
          * Start listening for participant media events
          */
-        participant.getMedia().setListener(createParticipantMediaListener());
+        participant.getMedia().setListener(mediaListener());
     }
 
     /*
@@ -333,19 +322,19 @@ public class VideoActivity extends AppCompatActivity {
         return new AccessManager.Listener() {
             @Override
             public void onTokenExpired(AccessManager twilioAccessManager) {
-                videoStatusTextView.setText("onAccessManagerTokenExpire");
+                videoStatusTextView.setText("Access Token Expired");
 
             }
 
             @Override
             public void onTokenUpdated(AccessManager twilioAccessManager) {
-                videoStatusTextView.setText("onTokenUpdated");
+                videoStatusTextView.setText("Access Token Updated");
 
             }
 
             @Override
             public void onError(AccessManager twilioAccessManager, String s) {
-                videoStatusTextView.setText("onError");
+                videoStatusTextView.setText("Access Token Error");
             }
         };
     }
@@ -367,7 +356,7 @@ public class VideoActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onConnectFailure(VideoException e) {
+            public void onConnectFailure(Room room, VideoException e) {
                 videoStatusTextView.setText("Failed to connect");
             }
 
@@ -380,7 +369,7 @@ public class VideoActivity extends AppCompatActivity {
                     finish();
                     loggingOut = false;
                 } else {
-                    setConnectAction();
+                    intializeUI();
 
                     /*
                      * Show local video in primary view
@@ -405,7 +394,7 @@ public class VideoActivity extends AppCompatActivity {
         };
     }
 
-    private Media.Listener createParticipantMediaListener() {
+    private Media.Listener mediaListener() {
         return new Media.Listener() {
 
             @Override
@@ -469,7 +458,7 @@ public class VideoActivity extends AppCompatActivity {
         };
     }
 
-    private View.OnClickListener hangupClickListener() {
+    private View.OnClickListener disconnectClickListener() {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -479,7 +468,7 @@ public class VideoActivity extends AppCompatActivity {
                 if (room != null) {
                     room.disconnect();
                 }
-                setConnectAction();
+                intializeUI();
             }
         };
     }
@@ -497,7 +486,7 @@ public class VideoActivity extends AppCompatActivity {
         return new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                setConnectAction();
+                intializeUI();
                 alertDialog.dismiss();
             }
         };
@@ -519,16 +508,12 @@ public class VideoActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 /*
-                 * Enable/disable local video track
+                 * Enable/disable the local video track
                  */
                 if (localVideoTrack != null) {
                     boolean enable = !localVideoTrack.isEnabled();
-                    if (!localVideoTrack.enable(enable)) {
-                        videoStatusTextView.setText("Failed to "+
-                                (enable ? "enable" : "disable") + " local video");
-                        return;
-                    }
-                    int icon = 0;
+                    localVideoTrack.enable(enable);
+                    int icon;
                     if (enable) {
                         icon = R.drawable.ic_videocam_green_24px;
                         switchCameraActionFab.show();
@@ -548,17 +533,13 @@ public class VideoActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 /*
-                 * Enable/disable local audio track
+                 * Enable/disable the local audio track
                  */
                 if (localAudioTrack != null) {
                     boolean enable = !localAudioTrack.isEnabled();
-                    if (!localAudioTrack.enable(enable)) {
-                        videoStatusTextView.setText("Failed to "+
-                                (enable ? "enable" : "disable") + " audio track");
-                        return;
-                    }
-                    int icon = enable ? R.drawable.ic_mic_green_24px :
-                            R.drawable.ic_mic_off_red_24px;
+                    localAudioTrack.enable(enable);
+                    int icon = enable ?
+                            R.drawable.ic_mic_green_24px : R.drawable.ic_mic_off_red_24px;
                     muteActionFab.setImageDrawable(ContextCompat.getDrawable(
                             VideoActivity.this, icon));
                 }
@@ -583,31 +564,29 @@ public class VideoActivity extends AppCompatActivity {
                             videoClient = new VideoClient(VideoActivity.this, accessManager);
                         } else {
                             Toast.makeText(VideoActivity.this,
-                                    R.string.error_retrieving_access_token, Toast.LENGTH_SHORT)
+                                    R.string.error_retrieving_access_token, Toast.LENGTH_LONG)
                                     .show();
                         }
                     }
                 });
     }
 
-    private int savedAudioMode = AudioManager.MODE_INVALID;
-    private void setAudioFocus(boolean setFocus) {
-        if (audioManager != null) {
-            if (setFocus) {
-                savedAudioMode = audioManager.getMode();
-                // Request audio focus before making any device switch.
-                audioManager.requestAudioFocus(null, AudioManager.STREAM_VOICE_CALL,
-                        AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
-
-                // Start by setting MODE_IN_COMMUNICATION as default audio mode. It is
-                // required to be in this mode when playout and/or recording starts for
-                // best possible VoIP performance.
-                // Some devices have difficulties with speaker mode if this is not set.
-                audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
-            } else {
-                audioManager.setMode(savedAudioMode);
-                audioManager.abandonAudioFocus(null);
-            }
+    private void setAudioFocus(boolean focus) {
+        if (focus) {
+            previousAudioMode = audioManager.getMode();
+            // Request audio focus before making any device switch.
+            audioManager.requestAudioFocus(null, AudioManager.STREAM_VOICE_CALL,
+                    AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+            /*
+             * Use MODE_IN_COMMUNICATION as the default audio mode. It is required
+             * to be in this mode when playout and/or recording starts for the best
+             * possible VoIP performance. Some devices have difficulties with
+             * speaker mode if this is not set.
+             */
+            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+        } else {
+            audioManager.setMode(previousAudioMode);
+            audioManager.abandonAudioFocus(null);
         }
     }
 }
