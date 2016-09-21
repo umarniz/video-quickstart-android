@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -117,9 +118,6 @@ public class VideoActivity extends AppCompatActivity {
             requestPermissionForCameraAndMicrophone();
         } else {
             createLocalMedia();
-            /*
-             * Create the Twilio Video Client
-             */
             createVideoClient();
         }
 
@@ -127,7 +125,28 @@ public class VideoActivity extends AppCompatActivity {
          * Set the initial state of the UI
          */
         intializeUI();
+    }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        if (requestCode == CAMERA_MIC_PERMISSION_REQUEST_CODE) {
+            boolean cameraAndMicPermissionGranted = true;
+
+            for (int grantResult : grantResults) {
+                cameraAndMicPermissionGranted &= grantResult == PackageManager.PERMISSION_GRANTED;
+            }
+
+            if (cameraAndMicPermissionGranted) {
+                createLocalMedia();
+                createVideoClient();
+            } else {
+                Toast.makeText(this,
+                        R.string.permissions_needed,
+                        Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     @Override
