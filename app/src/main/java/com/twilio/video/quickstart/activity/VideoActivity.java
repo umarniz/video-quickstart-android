@@ -85,7 +85,6 @@ public class VideoActivity extends AppCompatActivity {
     private AudioManager audioManager;
 
     private int previousAudioMode;
-    private boolean loggingOut;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -150,39 +149,18 @@ public class VideoActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.quickstart_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_log_out:
-                /*
-                 * All rooms need to be disconnected before tearing down the SDK
-                 */
-                loggingOut = true;
-                if (room != null) {
-                    room.disconnect();
-                } else {
-                    finish();
-                }
-
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
-    @Override
     protected void onDestroy() {
         super.onDestroy();
 
+        /*
+         * Release video renderers when no longer needed
+         */
         primaryVideoView.release();
         thumbnailVideoView.release();
 
+        /*
+         * Release local media when no longer needed
+         */
         if (localMedia != null) {
             localMedia.release();
             localMedia = null;
@@ -384,20 +362,15 @@ public class VideoActivity extends AppCompatActivity {
                 videoStatusTextView.setText("Disconnected from " + room.getName());
                 VideoActivity.this.room = null;
                 setAudioFocus(false);
-                if (loggingOut) {
-                    finish();
-                    loggingOut = false;
-                } else {
-                    intializeUI();
+                intializeUI();
 
-                    /*
-                     * Show local video in primary view
-                     */
-                    thumbnailVideoView.setVisibility(View.GONE);
-                    localVideoTrack.removeRenderer(thumbnailVideoView);
-                    primaryVideoView.setMirror(true);
-                    localVideoTrack.addRenderer(primaryVideoView);
-                }
+                /*
+                 * Show local video in primary view
+                 */
+                thumbnailVideoView.setVisibility(View.GONE);
+                localVideoTrack.removeRenderer(thumbnailVideoView);
+                primaryVideoView.setMirror(true);
+                localVideoTrack.addRenderer(primaryVideoView);
             }
 
             @Override
