@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -84,7 +85,6 @@ public class VideoActivity extends AppCompatActivity {
     private AudioManager audioManager;
 
     private int previousAudioMode;
-    private boolean loggingOut;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,9 +117,6 @@ public class VideoActivity extends AppCompatActivity {
             requestPermissionForCameraAndMicrophone();
         } else {
             createLocalMedia();
-            /*
-             * Create the Twilio Video Client
-             */
             createVideoClient();
         }
 
@@ -127,33 +124,27 @@ public class VideoActivity extends AppCompatActivity {
          * Set the initial state of the UI
          */
         intializeUI();
-
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.quickstart_menu, menu);
-        return true;
-    }
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        if (requestCode == CAMERA_MIC_PERMISSION_REQUEST_CODE) {
+            boolean cameraAndMicPermissionGranted = true;
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_log_out:
-                /*
-                 * All rooms need to be disconnected before tearing down the SDK
-                 */
-                loggingOut = true;
-                if (room != null) {
-                    room.disconnect();
-                } else {
-                    finish();
-                }
+            for (int grantResult : grantResults) {
+                cameraAndMicPermissionGranted &= grantResult == PackageManager.PERMISSION_GRANTED;
+            }
 
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+            if (cameraAndMicPermissionGranted) {
+                createLocalMedia();
+                createVideoClient();
+            } else {
+                Toast.makeText(this,
+                        R.string.permissions_needed,
+                        Toast.LENGTH_LONG).show();
+            }
         }
     }
 
@@ -161,9 +152,15 @@ public class VideoActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
+        /*
+         * Release video renderers when no longer needed
+         */
         primaryVideoView.release();
         thumbnailVideoView.release();
 
+        /*
+         * Release local media when no longer needed
+         */
         if (localMedia != null) {
             localMedia.release();
             localMedia = null;
@@ -365,20 +362,15 @@ public class VideoActivity extends AppCompatActivity {
                 videoStatusTextView.setText("Disconnected from " + room.getName());
                 VideoActivity.this.room = null;
                 setAudioFocus(false);
-                if (loggingOut) {
-                    finish();
-                    loggingOut = false;
-                } else {
-                    intializeUI();
+                intializeUI();
 
-                    /*
-                     * Show local video in primary view
-                     */
-                    thumbnailVideoView.setVisibility(View.GONE);
-                    localVideoTrack.removeRenderer(thumbnailVideoView);
-                    primaryVideoView.setMirror(true);
-                    localVideoTrack.addRenderer(primaryVideoView);
-                }
+                /*
+                 * Show local video in primary view
+                 */
+                thumbnailVideoView.setVisibility(View.GONE);
+                localVideoTrack.removeRenderer(thumbnailVideoView);
+                primaryVideoView.setMirror(true);
+                localVideoTrack.addRenderer(primaryVideoView);
             }
 
             @Override
