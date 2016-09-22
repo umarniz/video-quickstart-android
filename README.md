@@ -1,10 +1,9 @@
 # Twilio Video Quickstart for Android
 
-Use this project to get started with Twilio Video's Android SDK currently in Preview.
+Use this project to get started with Twilio Video's Android SDK currently in Preview. Here are the [docs](https://media.twiliocdn.com/sdk/android/video/releases/1.0.0-preview1/docs/).
+
 
  [ ![Download](https://api.bintray.com/packages/twilio/releases/video-android/images/download.svg) ](https://bintray.com/twilio/releases/video-android/_latestVersion)
-
-[Docs](https://media.twiliocdn.com/sdk/android/video/releases/1.0.0-preview1/docs/)
 
 ## Up and Running
 
