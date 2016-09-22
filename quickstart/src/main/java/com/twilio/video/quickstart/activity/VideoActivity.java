@@ -77,6 +77,7 @@ public class VideoActivity extends AppCompatActivity {
     private LocalMedia localMedia;
     private LocalAudioTrack localAudioTrack;
     private LocalVideoTrack localVideoTrack;
+    private VideoView localVideoView;
     private FloatingActionButton connectActionFab;
     private FloatingActionButton switchCameraActionFab;
     private FloatingActionButton localVideoActionFab;
@@ -204,6 +205,7 @@ public class VideoActivity extends AppCompatActivity {
         localVideoTrack = localMedia.addVideoTrack(true, cameraCapturer);
         primaryVideoView.setMirror(true);
         localVideoTrack.addRenderer(primaryVideoView);
+        localVideoView = primaryVideoView;
     }
 
     private void createVideoClient() {
@@ -292,6 +294,7 @@ public class VideoActivity extends AppCompatActivity {
         localVideoTrack.removeRenderer(primaryVideoView);
         thumbnailVideoView.setVisibility(View.VISIBLE);
         localVideoTrack.addRenderer(thumbnailVideoView);
+        localVideoView = thumbnailVideoView;
         /*
          * Start listening for participant media events
          */
@@ -310,6 +313,7 @@ public class VideoActivity extends AppCompatActivity {
         localVideoTrack.removeRenderer(thumbnailVideoView);
         primaryVideoView.setMirror(true);
         localVideoTrack.addRenderer(primaryVideoView);
+        localVideoView = primaryVideoView;
     }
 
     /*
@@ -371,6 +375,7 @@ public class VideoActivity extends AppCompatActivity {
                 localVideoTrack.removeRenderer(thumbnailVideoView);
                 primaryVideoView.setMirror(true);
                 localVideoTrack.addRenderer(primaryVideoView);
+                localVideoView = primaryVideoView;
             }
 
             @Override
@@ -490,6 +495,9 @@ public class VideoActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (cameraCapturer != null) {
                     cameraCapturer.switchCamera();
+                    localVideoView.setMirror(
+                            cameraCapturer.getCameraSource() ==
+                                    CameraSource.CAMERA_SOURCE_FRONT_CAMERA);
                 }
             }
         };
