@@ -1,8 +1,10 @@
 # Twilio Video Quickstart for Android
 
-Use this project to get started with Twilio Video's Android SDK by [following along with the quickstart guide here](https://www.twilio.com/docs/api/video/guide/quickstart-android).
+Use this project to get started with Twilio Video's Android SDK currently in Preview.
 
  [ ![Download](https://api.bintray.com/packages/twilio/releases/video-android/images/download.svg) ](https://bintray.com/twilio/releases/video-android/_latestVersion)
+
+[Docs](https://media.twiliocdn.com/sdk/android/video/releases/1.0.0-preview1/docs/)
 
 ## Up and Running
 
@@ -10,7 +12,7 @@ Use this project to get started with Twilio Video's Android SDK by [following al
 
 2) Download this project and open it in Android Studio.
 
-3) Get an access token [Generate an Access Token](https://www.twilio.com/user/account/video/dev-tools/testing-tools). Pick your identity (such as Bob). Leave this web page open, because you'll use it as the other side of the video chat.
+3) Get an access token [Generate an Access Token](https://www.twilio.com/user/account/video/dev-tools/testing-tools). Pick your identity (such as Bob).
 
 4) Paste the access token into VideoActivity.java
 
@@ -18,7 +20,7 @@ Use this project to get started with Twilio Video's Android SDK by [following al
 
 6) Tap the button at the bottom right portion of the screen and enter the room you would like to connect to. When ready, click connect.
 
-7) On the same web page where you generated the token, scroll down the bottom, enter the name of the room you connected in the application, and click Connect to Room. Your video call should start immediately! 
+7) On another device, use an additional access token with a different identity to connect to the same room. 
 
 ## What is this project?
 
@@ -28,13 +30,7 @@ Inside this quick start project, you will find an Activity that contains all of 
 
 You'll see how to set up key classes like AccessManager, VideoClient, LocalMedia, Room, and CameraCapturer. All of these Twilio classes have related listeners with implementations in VideoActivity.java.
 
-You can also see how Android's runtime permissions are implemented for access to the camera and the microphone on Android devices running version 6.0 (Marshmallow) or higher inside the onCreate() method in the VideoActivity class. It's important to note that you shouldn't initialize the Twilio client until the user grants access to the camera and microphone.
-
-## Prerequisites
-
-This project is a native Android application written in Java. You will need an up-to-date version of Android Studio (at the time of this writing, 2.2.0), to build the application. You will also need version 24.0.2 of the Android build tools, which you can download through Android Studio if you do not have them installed.
-
-The minimum supported Android version is 4.1 for devices or Android emulators. You can run the quick start on an x86 Android emulator - either 32-bit or 64-bit.
+You can also see how Android's runtime permissions are implemented for access to the camera and the microphone on Android devices running version 6.0 (Marshmallow) or higher inside the onCreate() method in the VideoActivity class.
 
 ## Access Tokens and Servers
 
