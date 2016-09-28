@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * the frame is available.
  */
 public class ViewCapturer implements VideoCapturer {
-    private static final int VIEW_CAPTURER_FRAMERATE_MS = 33;
+    private static final int VIEW_CAPTURER_FRAMERATE_MS = 100;
 
     private final View view;
     private Handler handler = new Handler(Looper.getMainLooper());
