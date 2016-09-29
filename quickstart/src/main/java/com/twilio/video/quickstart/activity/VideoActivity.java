@@ -201,7 +201,7 @@ public class VideoActivity extends AppCompatActivity {
         localAudioTrack = localMedia.addAudioTrack(true);
 
         // Share your camera
-        cameraCapturer = new CameraCapturer(this, CameraSource.CAMERA_SOURCE_FRONT_CAMERA, null);
+        cameraCapturer = new CameraCapturer(this, CameraSource.FRONT_CAMERA, null);
         localVideoTrack = localMedia.addVideoTrack(true, cameraCapturer);
         primaryVideoView.setMirror(true);
         localVideoTrack.addRenderer(primaryVideoView);
@@ -497,7 +497,7 @@ public class VideoActivity extends AppCompatActivity {
                     cameraCapturer.switchCamera();
                     localVideoView.setMirror(
                             cameraCapturer.getCameraSource() ==
-                                    CameraSource.CAMERA_SOURCE_FRONT_CAMERA);
+                                    CameraSource.FRONT_CAMERA);
                 }
             }
         };
