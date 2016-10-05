@@ -17,8 +17,6 @@ import com.twilio.video.LocalMedia;
 import com.twilio.video.LocalVideoTrack;
 import com.twilio.video.VideoView;
 
-import org.w3c.dom.Text;
-
 /**
  * This example demonstrates how to implement a custom custom renderer. Here we render the contents
  * of our {@link CameraCapturer} to a video view and to a snapshot renderer which allows user to
