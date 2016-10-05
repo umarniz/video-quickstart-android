@@ -18,7 +18,7 @@ import com.twilio.video.LocalVideoTrack;
 import com.twilio.video.VideoView;
 
 /**
- * This example demonstrates how to implement a custom custom renderer. Here we render the contents
+ * This example demonstrates how to implement a custom renderer. Here we render the contents
  * of our {@link CameraCapturer} to a video view and to a snapshot renderer which allows user to
  * grab the latest frame rendered. When the camera view is tapped the frame is updated.
  */
