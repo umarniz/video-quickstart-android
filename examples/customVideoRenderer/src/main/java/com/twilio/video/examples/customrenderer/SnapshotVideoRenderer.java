@@ -34,7 +34,7 @@ public class SnapshotVideoRenderer implements VideoRenderer {
 
     @Override
     public void renderFrame(final I420Frame i420Frame) {
-        // If a snapshot was requested capture bitmap and post to main thread
+        // Capture bitmap and post to main thread
         if (snapshotRequsted.compareAndSet(true, false)) {
             final Bitmap bitmap = captureBitmap(i420Frame);
             handler.post(new Runnable() {
