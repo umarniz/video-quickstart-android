@@ -43,7 +43,7 @@ public class SnapshotVideoRenderer implements VideoRenderer {
                     // Update the bitmap of image view
                     imageView.setImageBitmap(bitmap);
 
-                    // Frames must be released after rendered to free up native resources
+                    // Frames must be released after rendering to free the native memory
                     i420Frame.release();
                 }
             });
