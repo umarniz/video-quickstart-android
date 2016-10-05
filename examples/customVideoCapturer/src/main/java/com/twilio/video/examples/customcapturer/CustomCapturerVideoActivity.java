@@ -40,7 +40,6 @@ public class CustomCapturerVideoActivity extends Activity {
         localVideoTrack.removeRenderer(videoView);
         localMedia.removeVideoTrack(localVideoTrack);
         timerView.stop();
-        videoView.release();
         localMedia.release();
         super.onDestroy();
     }
