@@ -76,7 +76,6 @@ public class CustomRendererVideoActivity extends Activity {
         localVideoTrack.removeRenderer(localVideoView);
         localVideoTrack.removeRenderer(snapshotVideoRenderer);
         localMedia.removeVideoTrack(localVideoTrack);
-        localVideoView.release();
         localMedia.release();
         super.onDestroy();
     }
