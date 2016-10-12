@@ -31,6 +31,12 @@ You'll see how to set up key classes like AccessManager, VideoClient, LocalMedia
 
 You can also see how Android's runtime permissions are implemented for access to the camera and the microphone on Android devices running version 6.0 (Marshmallow) or higher inside the onCreate() method in the VideoActivity class.
 
+### Additional Examples
+You will also find additional [examples](examples) that provide more advanced use cases of the Video SDK. The currently included examples are as follows:
+
+- [Custom Video Capturer](examples/customVideoCapturer) - Shows how a custom `VideoCapturer` can be implemented to capture the contents of a `View`. 
+- [Custom Video Renderer](examples/customVideoRenderer) - Demonstrates how to implement a custom `VideoRenderer` that captures a `Bitmap` of the last renderered frame.
+
 ## Access Tokens and Servers
 
 Using Twilio's Video client within your applications requires an access token. These access tokens can come from one of two places:
