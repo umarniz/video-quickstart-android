@@ -1,4 +1,4 @@
-package com.twilio.conversations.quickstart;
+package com.twilio.video.quickstart;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

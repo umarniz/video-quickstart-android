@@ -6,13 +6,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="com.twilio.conversations.quickstart.activity.ConversationActivity">
+    tools:context="com.twilio.video.quickstart.activity.VideoActivity">
 
-
-    <include layout="@layout/content_conversation" />
+    <include layout="@layout/content_video" />
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/call_action_fab"
+        android:id="@+id/connect_action_fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
@@ -47,13 +46,6 @@
             android:layout_margin="@dimen/fab_margin"
             android:src="@drawable/ic_mic_green_24px" />
 
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/speaker_action_fab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:fabSize="mini"
-            android:layout_margin="@dimen/fab_margin"
-            android:src="@drawable/ic_volume_down_green_24px" />
 
     </LinearLayout>
 
