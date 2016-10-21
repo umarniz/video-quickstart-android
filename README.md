@@ -15,7 +15,7 @@ Use this project to get started with Twilio Video's Android SDK currently in Pre
 
 4) Paste the access token into VideoActivity.java
 
-5) Run your app on an Android device or the Android emulator
+5) Run quickstart app on an Android device or the Android emulator
 
 6) Tap the button at the bottom right portion of the screen and enter the room you would like to connect to. When ready, click connect.
 
@@ -32,10 +32,11 @@ You'll see how to set up key classes like AccessManager, VideoClient, LocalMedia
 You can also see how Android's runtime permissions are implemented for access to the camera and the microphone on Android devices running version 6.0 (Marshmallow) or higher inside the onCreate() method in the VideoActivity class.
 
 ### Additional Examples
-You will also find additional [examples](examples) that provide more advanced use cases of the Video SDK. The currently included examples are as follows:
+You will also find additional examples that provide more advanced use cases of the Video SDK. The currently included examples are as follows:
 
-- [Custom Video Capturer](examples/customVideoCapturer) - Shows how a custom `VideoCapturer` can be implemented to capture the contents of a `View`. 
-- [Custom Video Renderer](examples/customVideoRenderer) - Demonstrates how to implement a custom `VideoRenderer` that captures a `Bitmap` of the last renderered frame.
+- [Custom Video Capturer](exampleCustomVideoCapturer) - Shows how a custom `VideoCapturer` can be implemented to capture the contents of a `View`. 
+- [Custom Video Renderer](exampleCustomVideoRenderer) - Demonstrates how to implement a custom `VideoRenderer` that captures a `Bitmap` of the last renderered frame.
+- [Screen Capturer](exampleScreenCapturer) - Demonstrates how to use the screen capturer
 
 ## Access Tokens and Servers
 
