@@ -1,1 +1,1 @@
-include ':app', ':examples:customVideoCapturer', ':examples:customVideoRenderer', ':examples:screenCapturer'
+include ':quickstart', ':exampleCustomVideoCapturer', ':exampleCustomVideoRenderer', ':exampleScreenCapturer'
