@@ -20,7 +20,6 @@ import android.widget.Toast;
 import com.google.gson.JsonObject;
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
-import com.twilio.common.AccessManager;
 import com.twilio.video.quickstart.R;
 import com.twilio.video.quickstart.dialog.Dialog;
 import com.twilio.video.AudioTrack;
@@ -69,7 +68,6 @@ public class VideoActivity extends AppCompatActivity {
      * Android application UI elements
      */
     private TextView videoStatusTextView;
-    private AccessManager accessManager;
     private CameraCapturer cameraCapturer;
     private LocalMedia localMedia;
     private LocalAudioTrack localAudioTrack;
@@ -148,8 +146,6 @@ public class VideoActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
-
         /*
          * Release local media when no longer needed
          */
@@ -157,10 +153,8 @@ public class VideoActivity extends AppCompatActivity {
             localMedia.release();
             localMedia = null;
         }
-        if (accessManager != null) {
-            accessManager.dispose();
-            accessManager = null;
-        }
+
+        super.onDestroy();
     }
 
     private boolean checkPermissionForCameraAndMicrophone(){
@@ -202,16 +196,11 @@ public class VideoActivity extends AppCompatActivity {
     private void createVideoClient() {
         /*
          * Create a VideoClient allowing you to connect to a Room
-         * The AccessManager manages the lifetime of the access token and
-         * notifies the client of token expiry.
          */
 
         // OPTION 1- Generate an access token from the getting started portal
         // https://www.twilio.com/user/account/video/getting-started
-        accessManager = new AccessManager(VideoActivity.this,
-                TWILIO_ACCESS_TOKEN,
-                accessManagerListener());
-        videoClient = new VideoClient(VideoActivity.this, accessManager);
+        videoClient = new VideoClient(VideoActivity.this, TWILIO_ACCESS_TOKEN);
 
         // OPTION 2- Retrieve an access token from your own web app
         // retrieveAccessTokenfromServer();
@@ -305,30 +294,6 @@ public class VideoActivity extends AppCompatActivity {
         primaryVideoView.setMirror(true);
         localVideoTrack.addRenderer(primaryVideoView);
         localVideoView = primaryVideoView;
-    }
-
-    /*
-     * AccessManager listener
-     */
-    private AccessManager.Listener accessManagerListener() {
-        return new AccessManager.Listener() {
-            @Override
-            public void onTokenExpired(AccessManager twilioAccessManager) {
-                videoStatusTextView.setText("Access Token Expired");
-
-            }
-
-            @Override
-            public void onTokenUpdated(AccessManager twilioAccessManager) {
-                videoStatusTextView.setText("Access Token Updated");
-
-            }
-
-            @Override
-            public void onError(AccessManager twilioAccessManager, String s) {
-                videoStatusTextView.setText("Access Token Error");
-            }
-        };
     }
 
     /*
@@ -546,13 +511,9 @@ public class VideoActivity extends AppCompatActivity {
                     @Override
                     public void onCompleted(Exception e, JsonObject result) {
                         if (e == null) {
-
                             String accessToken = result.get("token").getAsString();
 
-                            accessManager = new AccessManager(VideoActivity.this,
-                                    accessToken,
-                                    accessManagerListener());
-                            videoClient = new VideoClient(VideoActivity.this, accessManager);
+                            videoClient = new VideoClient(VideoActivity.this, accessToken);
                         } else {
                             Toast.makeText(VideoActivity.this,
                                     R.string.error_retrieving_access_token, Toast.LENGTH_LONG)

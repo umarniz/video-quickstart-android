@@ -27,7 +27,7 @@ This quick start will help you get video chat integrated directly into your Andr
 
 Inside this quick start project, you will find an Activity that contains all of the functionality necessary to show two video streams on one screen - one video stream for your phone's video camera, and one for a remote video stream.
 
-You'll see how to set up key classes like AccessManager, VideoClient, LocalMedia, Room, and CameraCapturer. All of these Twilio classes have related listeners with implementations in VideoActivity.java.
+You'll see how to set up key classes like VideoClient, LocalMedia, Room, and CameraCapturer. All of these Twilio classes have related listeners with implementations in VideoActivity.java.
 
 You can also see how Android's runtime permissions are implemented for access to the camera and the microphone on Android devices running version 6.0 (Marshmallow) or higher inside the onCreate() method in the VideoActivity class.
 
