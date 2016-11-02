@@ -36,7 +36,8 @@ You will also find additional examples that provide more advanced use cases of t
 
 - [Custom Video Capturer](exampleCustomVideoCapturer) - Shows how a custom `VideoCapturer` can be implemented to capture the contents of a `View`. 
 - [Custom Video Renderer](exampleCustomVideoRenderer) - Demonstrates how to implement a custom `VideoRenderer` that captures a `Bitmap` of the last renderered frame.
-- [Screen Capturer](exampleScreenCapturer) - Demonstrates how to use the screen capturer
+- [Screen Capturer](exampleScreenCapturer) - Demonstrates how to use the screen capturer.
+- [Advanced Camera Capturer](exampleAdvancedCameraCapturer) - Demonstrates advanced use cases of `CameraCapturer`.
 
 ## Access Tokens and Servers
 
