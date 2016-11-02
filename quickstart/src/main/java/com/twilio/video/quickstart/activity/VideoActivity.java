@@ -186,7 +186,7 @@ public class VideoActivity extends AppCompatActivity {
         localAudioTrack = localMedia.addAudioTrack(true);
 
         // Share your camera
-        cameraCapturer = new CameraCapturer(this, CameraSource.FRONT_CAMERA, null);
+        cameraCapturer = new CameraCapturer(this, CameraSource.FRONT_CAMERA);
         localVideoTrack = localMedia.addVideoTrack(true, cameraCapturer);
         primaryVideoView.setMirror(true);
         localVideoTrack.addRenderer(primaryVideoView);

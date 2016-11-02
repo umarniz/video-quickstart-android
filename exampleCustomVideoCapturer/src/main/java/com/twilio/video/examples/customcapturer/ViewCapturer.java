@@ -98,6 +98,14 @@ public class ViewCapturer implements VideoCapturer {
     }
 
     /**
+     * Returns true because we are capturing screen content.
+     */
+    @Override
+    public boolean isScreencast() {
+        return true;
+    }
+
+    /**
      * This will be invoked when it is time to start capturing frames.
      *
      * @param videoFormat the video format of the frames to be captured.
