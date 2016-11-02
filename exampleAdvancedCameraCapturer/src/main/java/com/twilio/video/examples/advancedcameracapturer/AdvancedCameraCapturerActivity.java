@@ -20,7 +20,7 @@ import com.twilio.video.VideoView;
 
 /**
  * This example demonstrates advanced use cases of {@link com.twilio.video.CameraCapturer}. Current
- * use cases shown are as follow:
+ * use cases shown are as follows:
  *
  * <ol>
  *     <li>Setting Custom {@link android.hardware.Camera.Parameters}</li>
