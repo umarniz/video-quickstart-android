@@ -2,7 +2,11 @@ package com.twilio.video.examples.advancedcameracapturer;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -10,6 +14,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.twilio.video.CameraCapturer;
@@ -24,6 +29,7 @@ import com.twilio.video.VideoView;
  *
  * <ol>
  *     <li>Setting Custom {@link android.hardware.Camera.Parameters}</li>
+ *     <li>Taking a picture while capturing</li>
  * </ol>
  */
 public class AdvancedCameraCapturerActivity extends Activity {
@@ -32,13 +38,20 @@ public class AdvancedCameraCapturerActivity extends Activity {
     private LocalMedia localMedia;
     private VideoView videoView;
     private Button toggleFlashButton;
+    private Button takePictureButton;
+    private ImageView pictureImageView;
+    private AlertDialog pictureDialog;
     private CameraCapturer cameraCapturer;
     private LocalVideoTrack localVideoTrack;
     private boolean flashOn = false;
     private final View.OnClickListener toggleFlashButtonClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
+        @Override public void onClick(View v) {
             toggleFlash();
+        }
+    };
+    private final View.OnClickListener takePictureButtonClickListener = new View.OnClickListener() {
+        @Override public void onClick(View v) {
+            takePicture();
         }
     };
 
@@ -47,8 +60,7 @@ public class AdvancedCameraCapturerActivity extends Activity {
      * camera if supported by the device.
      */
     private final CameraParameterUpdater flashToggler = new CameraParameterUpdater() {
-        @Override
-        public void apply(Camera.Parameters parameters) {
+        @Override public void apply(Camera.Parameters parameters) {
             if (parameters.getFlashMode() != null) {
                 String flashMode = flashOn ?
                         Camera.Parameters.FLASH_MODE_OFF :
@@ -63,6 +75,29 @@ public class AdvancedCameraCapturerActivity extends Activity {
         }
     };
 
+    /**
+     * An example of a {@link com.twilio.video.CameraCapturer.PictureListener} that decodes the
+     * image to a {@link Bitmap} and shows the result in an alert dialog.
+     */
+    private final CameraCapturer.PictureListener photographer =
+            new CameraCapturer.PictureListener() {
+                @Override public void onShutter() {
+
+                }
+
+                @Override public void onPictureTaken(byte[] bytes) {
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+
+                    if (bitmap != null) {
+                        showPicture(bitmap);
+                    } else {
+                        Toast.makeText(AdvancedCameraCapturerActivity.this,
+                                R.string.take_picture_failed,
+                                Toast.LENGTH_LONG).show();
+                    }
+                }
+            };
+
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_advanced_camera_capturer);
@@ -70,6 +105,18 @@ public class AdvancedCameraCapturerActivity extends Activity {
         localMedia = LocalMedia.create(this);
         videoView = (VideoView) findViewById(R.id.video_view);
         toggleFlashButton = (Button) findViewById(R.id.toggle_flash_button);
+        takePictureButton = (Button) findViewById(R.id.take_picture_button);
+        pictureImageView = (ImageView) getLayoutInflater().inflate(R.layout.picture_image_view,
+                null);
+        pictureDialog = new AlertDialog.Builder(this)
+                .setView(pictureImageView)
+                .setTitle(R.string.camera_capturer_picture)
+                .setPositiveButton(R.string.close, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(final DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                }).create();
 
         if (!checkPermissionForCamera()) {
             requestPermissionForCamera();
@@ -78,8 +125,7 @@ public class AdvancedCameraCapturerActivity extends Activity {
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
+    @Override public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
@@ -124,10 +170,26 @@ public class AdvancedCameraCapturerActivity extends Activity {
         localVideoTrack = localMedia.addVideoTrack(true, cameraCapturer);
         localVideoTrack.addRenderer(videoView);
         toggleFlashButton.setOnClickListener(toggleFlashButtonClickListener);
+        takePictureButton.setOnClickListener(takePictureButtonClickListener);
     }
 
     private void toggleFlash() {
         // Request an update to camera parameters with flash toggler
         cameraCapturer.updateCameraParameters(flashToggler);
+    }
+
+    private void takePicture() {
+        cameraCapturer.takePicture(photographer);
+    }
+
+    private void showPicture(final Bitmap bitmap) {
+        // TODO: Remove when SDK invokes callback on calling thread
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                pictureImageView.setImageBitmap(bitmap);
+                pictureDialog.show();
+            }
+        });
     }
 }
