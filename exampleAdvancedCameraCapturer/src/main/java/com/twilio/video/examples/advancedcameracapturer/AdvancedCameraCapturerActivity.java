@@ -110,7 +110,7 @@ public class AdvancedCameraCapturerActivity extends Activity {
                 null);
         pictureDialog = new AlertDialog.Builder(this)
                 .setView(pictureImageView)
-                .setTitle(R.string.camera_capturer_picture)
+                .setTitle(null)
                 .setPositiveButton(R.string.close, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(final DialogInterface dialog, int which) {
