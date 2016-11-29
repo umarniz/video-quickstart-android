@@ -79,6 +79,7 @@ public class VideoActivity extends AppCompatActivity {
     private FloatingActionButton muteActionFab;
     private android.support.v7.app.AlertDialog alertDialog;
     private AudioManager audioManager;
+    private String participantIdentity;
 
     private int previousAudioMode;
 
@@ -267,7 +268,8 @@ public class VideoActivity extends AppCompatActivity {
                     .setAction("Action", null).show();
             return;
         }
-        videoStatusTextView.setText("Participant "+ participant.getIdentity() + " joined");
+        participantIdentity = participant.getIdentity();
+        videoStatusTextView.setText("Participant "+ participantIdentity + " joined");
         /*
          * Stop rendering local video track in primary view and move it to thumbnail view
          */
@@ -286,6 +288,9 @@ public class VideoActivity extends AppCompatActivity {
      */
     private void removeParticipant(Participant participant) {
         videoStatusTextView.setText("Participant "+participant.getIdentity()+ " left.");
+        if (!participant.getIdentity().equals(participantIdentity)) {
+            return;
+        }
         /*
          * Show local video in primary view
          */
