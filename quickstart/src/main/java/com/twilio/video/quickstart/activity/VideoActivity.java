@@ -20,6 +20,7 @@ import android.widget.Toast;
 import com.google.gson.JsonObject;
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
+import com.twilio.video.TwilioException;
 import com.twilio.video.quickstart.R;
 import com.twilio.video.quickstart.dialog.Dialog;
 import com.twilio.video.AudioTrack;
@@ -33,7 +34,6 @@ import com.twilio.video.Media;
 import com.twilio.video.Participant;
 import com.twilio.video.Room;
 import com.twilio.video.VideoClient;
-import com.twilio.video.VideoException;
 import com.twilio.video.VideoTrack;
 import com.twilio.video.VideoView;
 
@@ -318,12 +318,12 @@ public class VideoActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onConnectFailure(Room room, VideoException e) {
+            public void onConnectFailure(Room room, TwilioException e) {
                 videoStatusTextView.setText("Failed to connect");
             }
 
             @Override
-            public void onDisconnected(Room room, VideoException e) {
+            public void onDisconnected(Room room, TwilioException e) {
                 videoStatusTextView.setText("Disconnected from " + room.getName());
                 VideoActivity.this.room = null;
                 setAudioFocus(false);
