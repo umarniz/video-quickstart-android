@@ -202,7 +202,7 @@ public class VideoActivity extends AppCompatActivity {
         videoClient = new VideoClient(VideoActivity.this, TWILIO_ACCESS_TOKEN);
 
         // OPTION 2- Retrieve an access token from your own web app
-//         retrieveAccessTokenfromServer();
+        // retrieveAccessTokenfromServer();
     }
 
     private void connectToRoom(String roomName) {
