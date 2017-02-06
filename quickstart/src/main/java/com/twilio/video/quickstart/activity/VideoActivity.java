@@ -20,6 +20,8 @@ import android.widget.Toast;
 import com.google.gson.JsonObject;
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
+import com.twilio.video.RoomState;
+import com.twilio.video.VideoRenderer;
 import com.twilio.video.TwilioException;
 import com.twilio.video.quickstart.R;
 import com.twilio.video.quickstart.dialog.Dialog;
@@ -81,6 +83,8 @@ public class VideoActivity extends AppCompatActivity {
     private String participantIdentity;
 
     private int previousAudioMode;
+    private VideoRenderer localVideoView;
+    private boolean disconnectedFromOnDestroy;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,9 +149,46 @@ public class VideoActivity extends AppCompatActivity {
     }
 
     @Override
+    protected  void onResume() {
+        super.onResume();
+        /*
+         * If the local video track was removed when the app was put in the background, add it back.
+         */
+        if (localMedia != null && localVideoTrack == null) {
+            localVideoTrack = localMedia.addVideoTrack(true, cameraCapturer);
+            localVideoTrack.addRenderer(localVideoView);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        /*
+         * Remove the local video track before going in the background. This ensures that the
+         * camera can be used by other applications while this app is in the background.
+         *
+         * If this local video track is being shared in a Room, participants will be notified
+         * that the track has been removed.
+         */
+        if (localMedia != null && localVideoTrack != null) {
+            localMedia.removeVideoTrack(localVideoTrack);
+            localVideoTrack = null;
+        }
+        super.onPause();
+    }
+
+    @Override
     protected void onDestroy() {
         /*
-         * Release local media when no longer needed
+         * Always disconnect from the room before leaving the Activity to
+         * ensure any memory allocated to the Room resource is freed.
+         */
+        if (room != null && room.getState() != RoomState.DISCONNECTED) {
+            room.disconnect();
+            disconnectedFromOnDestroy = true;
+        }
+
+        /*
+         * Release the local media ensuring any memory allocated to audio or video is freed.
          */
         if (localMedia != null) {
             localMedia.release();
@@ -190,6 +231,7 @@ public class VideoActivity extends AppCompatActivity {
         localVideoTrack = localMedia.addVideoTrack(true, cameraCapturer);
         primaryVideoView.setMirror(true);
         localVideoTrack.addRenderer(primaryVideoView);
+        localVideoView = primaryVideoView;
     }
 
     private void createVideoClient() {
@@ -198,7 +240,7 @@ public class VideoActivity extends AppCompatActivity {
          */
 
         // OPTION 1- Generate an access token from the getting started portal
-        // https://www.twilio.com/user/account/video/getting-started
+        // https://www.twilio.com/console/video/dev-tools/testing-tools
         videoClient = new VideoClient(VideoActivity.this, TWILIO_ACCESS_TOKEN);
 
         // OPTION 2- Retrieve an access token from your own web app
@@ -295,6 +337,7 @@ public class VideoActivity extends AppCompatActivity {
             thumbnailVideoView.setVisibility(View.VISIBLE);
             localVideoTrack.removeRenderer(primaryVideoView);
             localVideoTrack.addRenderer(thumbnailVideoView);
+            localVideoView = thumbnailVideoView;
             thumbnailVideoView.setMirror(cameraCapturer.getCameraSource() ==
                     CameraSource.FRONT_CAMERA);
         }
@@ -328,6 +371,7 @@ public class VideoActivity extends AppCompatActivity {
             localVideoTrack.removeRenderer(thumbnailVideoView);
             thumbnailVideoView.setVisibility(View.GONE);
             localVideoTrack.addRenderer(primaryVideoView);
+            localVideoView = primaryVideoView;
             primaryVideoView.setMirror(cameraCapturer.getCameraSource() ==
                     CameraSource.FRONT_CAMERA);
         }
@@ -358,9 +402,12 @@ public class VideoActivity extends AppCompatActivity {
             public void onDisconnected(Room room, TwilioException e) {
                 videoStatusTextView.setText("Disconnected from " + room.getName());
                 VideoActivity.this.room = null;
-                setAudioFocus(false);
-                intializeUI();
-                moveLocalVideoToPrimaryView();
+                // Only reinitialize the UI if disconnect was not called from onDestroy()
+                if (!disconnectedFromOnDestroy) {
+                    setAudioFocus(false);
+                    intializeUI();
+                    moveLocalVideoToPrimaryView();
+                }
             }
 
             @Override
