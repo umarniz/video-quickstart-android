@@ -3,16 +3,24 @@ package com.twilio.video.quickstart.activity;
 import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -21,6 +29,7 @@ import android.widget.Toast;
 import com.google.gson.JsonObject;
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
+import com.twilio.video.AudioCodec;
 import com.twilio.video.LocalParticipant;
 import com.twilio.video.RemoteAudioTrack;
 import com.twilio.video.RemoteAudioTrackPublication;
@@ -28,7 +37,10 @@ import com.twilio.video.RemoteParticipant;
 import com.twilio.video.RemoteVideoTrack;
 import com.twilio.video.RemoteVideoTrackPublication;
 import com.twilio.video.RoomState;
+import com.twilio.video.StatsListener;
+import com.twilio.video.StatsReport;
 import com.twilio.video.Video;
+import com.twilio.video.VideoCodec;
 import com.twilio.video.VideoRenderer;
 import com.twilio.video.TwilioException;
 import com.twilio.video.quickstart.R;
@@ -43,6 +55,7 @@ import com.twilio.video.VideoView;
 import com.twilio.video.quickstart.util.CameraCapturerCompat;
 
 import java.util.Collections;
+import java.util.List;
 
 public class VideoActivity extends AppCompatActivity {
     private static final int CAMERA_MIC_PERMISSION_REQUEST_CODE = 1;
@@ -67,11 +80,23 @@ public class VideoActivity extends AppCompatActivity {
     private LocalParticipant localParticipant;
 
     /*
+     * AudioCodec and VideoCodec represent the preferred codec for encoding and decoding audio and
+     * video.
+     */
+    private AudioCodec audioCodec;
+    private VideoCodec videoCodec;
+
+    /*
      * A VideoView receives frames from a local or remote video track and renders them
      * to an associated view.
      */
     private VideoView primaryVideoView;
     private VideoView thumbnailVideoView;
+
+    /*
+     * Android shared preferences used for settings
+     */
+    private SharedPreferences preferences;
 
     /*
      * Android application UI elements
@@ -84,7 +109,7 @@ public class VideoActivity extends AppCompatActivity {
     private FloatingActionButton switchCameraActionFab;
     private FloatingActionButton localVideoActionFab;
     private FloatingActionButton muteActionFab;
-    private android.support.v7.app.AlertDialog alertDialog;
+    private AlertDialog connectDialog;
     private AudioManager audioManager;
     private String remoteParticipantIdentity;
 
@@ -108,6 +133,11 @@ public class VideoActivity extends AppCompatActivity {
         muteActionFab = (FloatingActionButton) findViewById(R.id.mute_action_fab);
 
         /*
+         * Get shared preferences to read settings
+         */
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        /*
          * Enable changing the volume using the up/down keys during a conversation
          */
         setVolumeControlStream(AudioManager.STREAM_VOICE_CALL);
@@ -115,7 +145,7 @@ public class VideoActivity extends AppCompatActivity {
         /*
          * Needed for setting/abandoning audio focus during call
          */
-        audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
         /*
          * Check camera and microphone permissions. Needed in Android M.
@@ -131,6 +161,24 @@ public class VideoActivity extends AppCompatActivity {
          * Set the initial state of the UI
          */
         intializeUI();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_video_activity, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
+                return true;
+            default:
+                return false;
+        }
     }
 
     @Override
@@ -158,6 +206,17 @@ public class VideoActivity extends AppCompatActivity {
     @Override
     protected  void onResume() {
         super.onResume();
+
+        /*
+         * Update preferred audio and video codec in case changed in settings
+         */
+        audioCodec = getCodecPreference(SettingsActivity.PREF_AUDIO_CODEC,
+                SettingsActivity.PREF_AUDIO_CODEC_DEFAULT,
+                AudioCodec.class);
+        videoCodec = getCodecPreference(SettingsActivity.PREF_VIDEO_CODEC,
+                SettingsActivity.PREF_VIDEO_CODEC_DEFAULT,
+                VideoCodec.class);
+
         /*
          * If the local video track was released when the app was put in the background, recreate.
          */
@@ -285,6 +344,13 @@ public class VideoActivity extends AppCompatActivity {
         if (localVideoTrack != null) {
             connectOptionsBuilder.videoTracks(Collections.singletonList(localVideoTrack));
         }
+
+        /*
+         * Set the preferred audio and video codec for media.
+         */
+        connectOptionsBuilder.preferAudioCodecs(Collections.singletonList(audioCodec));
+        connectOptionsBuilder.preferVideoCodecs(Collections.singletonList(videoCodec));
+
         room = Video.connect(this, connectOptionsBuilder.build(), roomListener());
         setDisconnectAction();
     }
@@ -306,6 +372,17 @@ public class VideoActivity extends AppCompatActivity {
     }
 
     /*
+     * Get the preferred audio or video codec from shared preferences
+     */
+    private <T extends Enum<T>> T getCodecPreference(String key,
+                                                     String defaultValue,
+                                                     final Class<T> enumClass) {
+
+        final String codec = preferences.getString(key, defaultValue);
+        return Enum.valueOf(enumClass, codec);
+    }
+
+    /*
      * The actions performed during disconnect.
      */
     private void setDisconnectAction() {
@@ -320,9 +397,11 @@ public class VideoActivity extends AppCompatActivity {
      */
     private void showConnectDialog() {
         EditText roomEditText = new EditText(this);
-        alertDialog = Dialog.createConnectDialog(roomEditText,
-                connectClickListener(roomEditText), cancelConnectDialogClickListener(), this);
-        alertDialog.show();
+        connectDialog = Dialog.createConnectDialog(roomEditText,
+                connectClickListener(roomEditText),
+                cancelConnectDialogClickListener(),
+                this);
+        connectDialog.show();
     }
 
     /*
@@ -616,7 +695,7 @@ public class VideoActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 intializeUI();
-                alertDialog.dismiss();
+                connectDialog.dismiss();
             }
         };
     }
