@@ -6,7 +6,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -31,6 +34,7 @@ import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
 import com.twilio.video.AudioCodec;
 import com.twilio.video.EncodingParameters;
+import com.twilio.video.CameraCapturer;
 import com.twilio.video.LocalParticipant;
 import com.twilio.video.RemoteAudioTrack;
 import com.twilio.video.RemoteAudioTrackPublication;
@@ -332,11 +336,17 @@ public class VideoActivity extends AppCompatActivity {
         localAudioTrack = LocalAudioTrack.create(this, true);
 
         // Share your camera
-        cameraCapturerCompat = new CameraCapturerCompat(this, CameraSource.FRONT_CAMERA);
+        cameraCapturerCompat = new CameraCapturerCompat(this, getAvailableCameraSource());
         localVideoTrack = LocalVideoTrack.create(this, true, cameraCapturerCompat.getVideoCapturer());
         primaryVideoView.setMirror(true);
         localVideoTrack.addRenderer(primaryVideoView);
         localVideoView = primaryVideoView;
+    }
+
+    private CameraSource getAvailableCameraSource() {
+        return (CameraCapturer.isSourceAvailable(CameraSource.FRONT_CAMERA)) ?
+                (CameraSource.FRONT_CAMERA) :
+                (CameraSource.BACK_CAMERA);
     }
 
     private void setAccessToken() {
@@ -534,9 +544,11 @@ public class VideoActivity extends AppCompatActivity {
 
     private void moveLocalVideoToPrimaryView() {
         if (thumbnailVideoView.getVisibility() == View.VISIBLE) {
-            localVideoTrack.removeRenderer(thumbnailVideoView);
             thumbnailVideoView.setVisibility(View.GONE);
-            localVideoTrack.addRenderer(primaryVideoView);
+            if (localVideoTrack != null) {
+                localVideoTrack.removeRenderer(primaryVideoView);
+                localVideoTrack.addRenderer(thumbnailVideoView);
+            }
             localVideoView = primaryVideoView;
             primaryVideoView.setMirror(cameraCapturerCompat.getCameraSource() ==
                     CameraSource.FRONT_CAMERA);
@@ -823,9 +835,8 @@ public class VideoActivity extends AppCompatActivity {
     private void configureAudio(boolean enable) {
         if (enable) {
             previousAudioMode = audioManager.getMode();
-            // Request audio focus before making any device switch.
-            audioManager.requestAudioFocus(null, AudioManager.STREAM_VOICE_CALL,
-                    AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+            // Request audio focus before making any device switch
+            requestAudioFocus();
             /*
              * Use MODE_IN_COMMUNICATION as the default audio mode. It is required
              * to be in this mode when playout and/or recording starts for the best
@@ -842,6 +853,29 @@ public class VideoActivity extends AppCompatActivity {
             audioManager.setMode(previousAudioMode);
             audioManager.abandonAudioFocus(null);
             audioManager.setMicrophoneMute(previousMicrophoneMute);
+        }
+    }
+
+    private void requestAudioFocus() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            AudioAttributes playbackAttributes = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .build();
+            AudioFocusRequest focusRequest =
+                    new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+                            .setAudioAttributes(playbackAttributes)
+                            .setAcceptsDelayedFocusGain(true)
+                            .setOnAudioFocusChangeListener(
+                                    new AudioManager.OnAudioFocusChangeListener() {
+                                        @Override
+                                        public void onAudioFocusChange(int i) { }
+                                    })
+                            .build();
+            audioManager.requestAudioFocus(focusRequest);
+        } else {
+            audioManager.requestAudioFocus(null, AudioManager.STREAM_VOICE_CALL,
+                    AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
         }
     }
 }
