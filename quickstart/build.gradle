@@ -11,6 +11,16 @@ android {
         targetSdkVersion versions.targetSdk
         versionCode 1
         versionName "1.0"
+
+        buildConfigField("String",
+                "TWILIO_ACCESS_TOKEN",
+                "\"${getSecretProperty("TWILIO_ACCESS_TOKEN", "TWILIO_ACCESS_TOKEN")}\"")
+        buildConfigField("String",
+                "TWILIO_ACCESS_TOKEN_SERVER",
+                "\"${getSecretProperty("TWILIO_ACCESS_TOKEN_SERVER", "http://localhost:3000")}\"")
+        buildConfigField("boolean",
+                "USE_TOKEN_SERVER",
+                "${getSecretProperty("USE_TOKEN_SERVER", false)}")
     }
 
     buildTypes {
@@ -39,10 +49,10 @@ android {
 }
 
 dependencies {
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
 
-    compile "com.twilio:video-android:${versions.videoAndroid}"
-    compile "com.koushikdutta.ion:ion:${versions.ion}"
-    compile "com.android.support:appcompat-v7:${versions.supportLibrary}"
-    compile "com.android.support:design:${versions.supportLibrary}"
+    implementation "com.twilio:video-android:${versions.videoAndroid}"
+    implementation "com.koushikdutta.ion:ion:${versions.ion}"
+    implementation "com.android.support:appcompat-v7:${versions.supportLibrary}"
+    implementation "com.android.support:design:${versions.supportLibrary}"
 }
