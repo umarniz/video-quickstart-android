@@ -41,7 +41,7 @@ You can use a token server you setup with [our guide](https://github.com/twilio/
 to retrieve tokens at runtime. See example below.
 
 ```
-ACCESS_TOKEN_SERVER=http://localhost:3000
+TWILIO_ACCESS_TOKEN_SERVER=http://localhost:3000
 
 # Default value is false
 USE_TOKEN_SERVER=true
