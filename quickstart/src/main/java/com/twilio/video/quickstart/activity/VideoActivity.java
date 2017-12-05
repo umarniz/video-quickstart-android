@@ -700,7 +700,7 @@ public class VideoActivity extends AppCompatActivity {
 
             @Override
             public void onDataTrackPublished(RemoteParticipant remoteParticipant,
-                                              RemoteDataTrackPublication remoteDataTrackPublication) {
+                                             RemoteDataTrackPublication remoteDataTrackPublication) {
                 Log.i(TAG, String.format("onDataTrackPublished: " +
                                 "[RemoteParticipant: identity=%s], " +
                                 "[RemoteDataTrackPublication: sid=%s, enabled=%b, " +
@@ -715,7 +715,7 @@ public class VideoActivity extends AppCompatActivity {
 
             @Override
             public void onDataTrackUnpublished(RemoteParticipant remoteParticipant,
-                                                RemoteDataTrackPublication remoteDataTrackPublication) {
+                                               RemoteDataTrackPublication remoteDataTrackPublication) {
                 Log.i(TAG, String.format("onDataTrackUnpublished: " +
                                 "[RemoteParticipant: identity=%s], " +
                                 "[RemoteDataTrackPublication: sid=%s, enabled=%b, " +

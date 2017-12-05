@@ -60,7 +60,7 @@ class VideoActivity : AppCompatActivity() {
             title = room.name
 
             // Only one participant is supported
-            room.participants.firstOrNull()?.let { addParticipant(it) }
+            room.remoteParticipants.firstOrNull()?.let { addRemoteParticipant(it) }
         }
 
         override fun onConnectFailure(room: Room, e: TwilioException) {
@@ -81,12 +81,12 @@ class VideoActivity : AppCompatActivity() {
             }
         }
 
-        override fun onParticipantConnected(room: Room, participant: Participant) {
-            addParticipant(participant)
+        override fun onParticipantConnected(room: Room, participant: RemoteParticipant) {
+            addRemoteParticipant(participant)
         }
 
-        override fun onParticipantDisconnected(room: Room, participant: Participant) {
-            removeParticipant(participant)
+        override fun onParticipantDisconnected(room: Room, participant: RemoteParticipant) {
+            removeRemoteParticipant(participant)
         }
 
         override fun onRecordingStarted(room: Room) {
@@ -107,41 +107,154 @@ class VideoActivity : AppCompatActivity() {
     }
 
     /*
-     * Participant events listener
+     * RemoteParticipant events listener
      */
-    private val participantListener = object : Participant.Listener {
-        override fun onAudioTrackAdded(participant: Participant, audioTrack: AudioTrack) {
+    private val participantListener = object : RemoteParticipant.Listener {
+        override fun onAudioTrackPublished(remoteParticipant: RemoteParticipant,
+                                           remoteAudioTrackPublication: RemoteAudioTrackPublication) {
+            Log.i(TAG, "onAudioTrackPublished: " +
+                    "[RemoteParticipant: identity=${remoteParticipant.identity}], " +
+                    "[RemoteAudioTrackPublication: sid=${remoteAudioTrackPublication.trackSid}, " +
+                    "enabled=${remoteAudioTrackPublication.isTrackEnabled}, " +
+                    "subscribed=${remoteAudioTrackPublication.isTrackSubscribed}, " +
+                    "name=${remoteAudioTrackPublication.trackName}]")
             videoStatusTextView.text = "onAudioTrackAdded"
         }
 
-        override fun onAudioTrackRemoved(participant: Participant, audioTrack: AudioTrack) {
+        override fun onAudioTrackUnpublished(remoteParticipant: RemoteParticipant,
+                                             remoteAudioTrackPublication: RemoteAudioTrackPublication) {
+            Log.i(TAG, "onAudioTrackUnpublished: " +
+                    "[RemoteParticipant: identity=${remoteParticipant.identity}], " +
+                    "[RemoteAudioTrackPublication: sid=${remoteAudioTrackPublication.trackSid}, " +
+                    "enabled=${remoteAudioTrackPublication.isTrackEnabled}, " +
+                    "subscribed=${remoteAudioTrackPublication.isTrackSubscribed}, " +
+                    "name=${remoteAudioTrackPublication.trackName}]")
             videoStatusTextView.text = "onAudioTrackRemoved"
         }
 
-        override fun onVideoTrackAdded(participant: Participant, videoTrack: VideoTrack) {
-            videoStatusTextView.text = "onVideoTrackAdded"
-            addParticipantVideo(videoTrack)
+        override fun onDataTrackPublished(remoteParticipant: RemoteParticipant,
+                                          remoteDataTrackPublication: RemoteDataTrackPublication) {
+            Log.i(TAG, "onDataTrackPublished: " +
+                    "[RemoteParticipant: identity=${remoteParticipant.identity}], " +
+                    "[RemoteDataTrackPublication: sid=${remoteDataTrackPublication.trackSid}, " +
+                    "enabled=${remoteDataTrackPublication.isTrackEnabled}, " +
+                    "subscribed=${remoteDataTrackPublication.isTrackSubscribed}, " +
+                    "name=${remoteDataTrackPublication.trackName}]")
+            videoStatusTextView.text = "onDataTrackPublished"
         }
 
-        override fun onVideoTrackRemoved(participant: Participant, videoTrack: VideoTrack) {
-            videoStatusTextView.text = "onVideoTrackRemoved"
-            removeParticipantVideo(videoTrack)
+        override fun onDataTrackUnpublished(remoteParticipant: RemoteParticipant,
+                                            remoteDataTrackPublication: RemoteDataTrackPublication) {
+            Log.i(TAG, "onDataTrackUnpublished: " +
+                    "[RemoteParticipant: identity=${remoteParticipant.identity}], " +
+                    "[RemoteDataTrackPublication: sid=${remoteDataTrackPublication.trackSid}, " +
+                    "enabled=${remoteDataTrackPublication.isTrackEnabled}, " +
+                    "subscribed=${remoteDataTrackPublication.isTrackSubscribed}, " +
+                    "name=${remoteDataTrackPublication.trackName}]")
+            videoStatusTextView.text = "onDataTrackUnpublished"
         }
 
-        override fun onAudioTrackEnabled(participant: Participant, audioTrack: AudioTrack) {
-
+        override fun onVideoTrackPublished(remoteParticipant: RemoteParticipant,
+                                           remoteVideoTrackPublication: RemoteVideoTrackPublication) {
+            Log.i(TAG, "onVideoTrackPublished: " +
+                    "[RemoteParticipant: identity=${remoteParticipant.identity}], " +
+                    "[RemoteVideoTrackPublication: sid=${remoteVideoTrackPublication.trackSid}, " +
+                    "enabled=${remoteVideoTrackPublication.isTrackEnabled}, " +
+                    "subscribed=${remoteVideoTrackPublication.isTrackSubscribed}, " +
+                    "name=${remoteVideoTrackPublication.trackName}]")
+            videoStatusTextView.text = "onVideoTrackPublished"
         }
 
-        override fun onAudioTrackDisabled(participant: Participant, audioTrack: AudioTrack) {
-
+        override fun onVideoTrackUnpublished(remoteParticipant: RemoteParticipant,
+                                             remoteVideoTrackPublication: RemoteVideoTrackPublication) {
+            Log.i(TAG, "onVideoTrackUnpublished: " +
+                    "[RemoteParticipant: identity=${remoteParticipant.identity}], " +
+                    "[RemoteVideoTrackPublication: sid=${remoteVideoTrackPublication.trackSid}, " +
+                    "enabled=${remoteVideoTrackPublication.isTrackEnabled}, " +
+                    "subscribed=${remoteVideoTrackPublication.isTrackSubscribed}, " +
+                    "name=${remoteVideoTrackPublication.trackName}]")
+            videoStatusTextView.text = "onVideoTrackUnpublished"
         }
 
-        override fun onVideoTrackEnabled(participant: Participant, videoTrack: VideoTrack) {
-
+        override fun onAudioTrackSubscribed(remoteParticipant: RemoteParticipant,
+                                            remoteAudioTrackPublication: RemoteAudioTrackPublication,
+                                            remoteAudioTrack: RemoteAudioTrack) {
+            Log.i(TAG, "onAudioTrackSubscribed: " +
+                    "[RemoteParticipant: identity=${remoteParticipant.identity}], " +
+                    "[RemoteAudioTrack: enabled=${remoteAudioTrack.isEnabled}, " +
+                    "playbackEnabled=${remoteAudioTrack.isPlaybackEnabled}, " +
+                    "name=${remoteAudioTrack.name}]")
+            videoStatusTextView.text = "onAudioTrackSubscribed"
         }
 
-        override fun onVideoTrackDisabled(participant: Participant, videoTrack: VideoTrack) {
+        override fun onAudioTrackUnsubscribed(remoteParticipant: RemoteParticipant,
+                                              remoteAudioTrackPublication: RemoteAudioTrackPublication,
+                                              remoteAudioTrack: RemoteAudioTrack) {
+            Log.i(TAG, "onAudioTrackUnsubscribed: " +
+                    "[RemoteParticipant: identity=${remoteParticipant.identity}], " +
+                    "[RemoteAudioTrack: enabled=${remoteAudioTrack.isEnabled}, " +
+                    "playbackEnabled=${remoteAudioTrack.isPlaybackEnabled}, " +
+                    "name=${remoteAudioTrack.name}]")
+            videoStatusTextView.text = "onAudioTrackUnsubscribed"
+        }
 
+        override fun onDataTrackSubscribed(remoteParticipant: RemoteParticipant,
+                                           remoteDataTrackPublication: RemoteDataTrackPublication,
+                                           remoteDataTrack: RemoteDataTrack) {
+            Log.i(TAG, String.format("onDataTrackSubscribed: " +
+                    "[RemoteParticipant: identity=${remoteParticipant.identity}], " +
+                    "[RemoteDataTrack: enabled=${remoteDataTrack.isEnabled}, name=%s]",
+                    remoteDataTrack.isEnabled,
+                    remoteDataTrack.name))
+            videoStatusTextView.text = "onDataTrackSubscribed"
+        }
+
+        override fun onDataTrackUnsubscribed(remoteParticipant: RemoteParticipant,
+                                             remoteDataTrackPublication: RemoteDataTrackPublication,
+                                             remoteDataTrack: RemoteDataTrack) {
+            Log.i(TAG, "onDataTrackUnsubscribed: " +
+                    "[RemoteParticipant: identity=${remoteParticipant.identity}], " +
+                    "[RemoteDataTrack: enabled=${remoteDataTrack.isEnabled}, " +
+                    "name=${remoteDataTrack.name}]")
+            videoStatusTextView.text = "onDataTrackUnsubscribed"
+        }
+
+        override fun onVideoTrackSubscribed(remoteParticipant: RemoteParticipant,
+                                            remoteVideoTrackPublication: RemoteVideoTrackPublication,
+                                            remoteVideoTrack: RemoteVideoTrack) {
+            Log.i(TAG, "onVideoTrackSubscribed: " +
+                    "[RemoteParticipant: identity=${remoteParticipant.identity}], " +
+                    "[RemoteVideoTrack: enabled=${remoteVideoTrack.isEnabled}, " +
+                    "name=${remoteVideoTrack.name}]")
+            videoStatusTextView.text = "onVideoTrackSubscribed"
+            addRemoteParticipantVideo(remoteVideoTrack)
+        }
+
+        override fun onVideoTrackUnsubscribed(remoteParticipant: RemoteParticipant,
+                                              remoteVideoTrackPublication: RemoteVideoTrackPublication,
+                                              remoteVideoTrack: RemoteVideoTrack) {
+            Log.i(TAG, "onVideoTrackUnsubscribed: " +
+                    "[RemoteParticipant: identity=${remoteParticipant.identity}], " +
+                    "[RemoteVideoTrack: enabled=${remoteVideoTrack.isEnabled}, " +
+                    "name=${remoteVideoTrack.name}]")
+            videoStatusTextView.text = "onVideoTrackUnsubscribed"
+            removeParticipantVideo(remoteVideoTrack)
+        }
+
+        override fun onAudioTrackEnabled(remoteParticipant: RemoteParticipant,
+                                         remoteAudioTrackPublication: RemoteAudioTrackPublication) {
+        }
+
+        override fun onVideoTrackEnabled(remoteParticipant: RemoteParticipant,
+                                         remoteVideoTrackPublication: RemoteVideoTrackPublication) {
+        }
+
+        override fun onVideoTrackDisabled(remoteParticipant: RemoteParticipant,
+                                          remoteVideoTrackPublication: RemoteVideoTrackPublication) {
+        }
+
+        override fun onAudioTrackDisabled(remoteParticipant: RemoteParticipant,
+                                          remoteAudioTrackPublication: RemoteAudioTrackPublication) {
         }
     }
 
@@ -235,7 +348,7 @@ class VideoActivity : AppCompatActivity() {
         /*
          * If connected to a Room then share the local video track.
          */
-        localVideoTrack?.let { localParticipant?.addVideoTrack(it) }
+        localVideoTrack?.let { localParticipant?.publishTrack(it) }
     }
 
     override fun onPause() {
@@ -244,7 +357,7 @@ class VideoActivity : AppCompatActivity() {
          * participant before releasing the video track. Participants will be notified that
          * the track has been removed.
          */
-        localVideoTrack?.let { localParticipant?.removeVideoTrack(it) }
+        localVideoTrack?.let { localParticipant?.unpublishTrack(it) }
 
 
         /*
@@ -411,7 +524,7 @@ class VideoActivity : AppCompatActivity() {
     /*
      * Called when participant joins the room
      */
-    private fun addParticipant(participant: Participant) {
+    private fun addRemoteParticipant(remoteParticipant: RemoteParticipant) {
         /*
          * This app only displays video for one additional participant per Room
          */
@@ -422,26 +535,28 @@ class VideoActivity : AppCompatActivity() {
                     .setAction("Action", null).show()
             return
         }
-        participantIdentity = participant.identity
+        participantIdentity = remoteParticipant.identity
         videoStatusTextView.text = "Participant $participantIdentity joined"
 
         /*
          * Add participant renderer
          */
-        if (participant.videoTracks.isNotEmpty()) {
-            addParticipantVideo(participant.videoTracks.first())
+        remoteParticipant.remoteVideoTracks.firstOrNull()?.let { remoteVideoTrackPublication ->
+            if (remoteVideoTrackPublication.isTrackSubscribed) {
+                remoteVideoTrackPublication.remoteVideoTrack?.let { addRemoteParticipantVideo(it) }
+            }
         }
 
         /*
          * Start listening for participant events
          */
-        participant.setListener(participantListener)
+        remoteParticipant.setListener(participantListener)
     }
 
     /*
      * Set primary view as renderer for participant video track
      */
-    private fun addParticipantVideo(videoTrack: VideoTrack) {
+    private fun addRemoteParticipantVideo(videoTrack: VideoTrack) {
         moveLocalVideoToThumbnailView()
         primaryVideoView.mirror = false
         videoTrack.addRenderer(primaryVideoView)
@@ -463,17 +578,19 @@ class VideoActivity : AppCompatActivity() {
     /*
      * Called when participant leaves the room
      */
-    private fun removeParticipant(participant: Participant) {
-        videoStatusTextView.text = "Participant $participant.identity left."
-        if (participant.identity != participantIdentity) {
+    private fun removeRemoteParticipant(remoteParticipant: RemoteParticipant) {
+        videoStatusTextView.text = "Participant $remoteParticipant.identity left."
+        if (remoteParticipant.identity != participantIdentity) {
             return
         }
 
         /*
          * Remove participant renderer
          */
-        participant.videoTracks.firstOrNull()?.let {
-            removeParticipantVideo(participant.videoTracks[0])
+        remoteParticipant.remoteVideoTracks.firstOrNull()?.let { remoteVideoTrackPublication ->
+            if (remoteVideoTrackPublication.isTrackSubscribed) {
+                remoteVideoTrackPublication.remoteVideoTrack?.let { removeParticipantVideo(it) }
+            }
         }
         moveLocalVideoToPrimaryView()
     }
