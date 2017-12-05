@@ -30,6 +30,16 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".SettingsActivity"
+            android:theme="@style/AppTheme.Settings"
+            android:label="@string/title_activity_settings"
+            android:parentActivityName=".VideoActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.twilio.video.quickstart.kotlin.VideoActivity" />
+        </activity>
     </application>
 
 </manifest>

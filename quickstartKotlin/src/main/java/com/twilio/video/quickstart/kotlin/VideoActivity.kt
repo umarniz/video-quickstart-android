@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.DialogInterface
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
@@ -11,6 +12,7 @@ import android.media.AudioManager
 import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.support.design.widget.Snackbar
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
@@ -49,6 +51,36 @@ class VideoActivity : AppCompatActivity() {
      */
     private var room: Room? = null
     private var localParticipant: LocalParticipant? = null
+
+    /*
+     * AudioCodec and VideoCodec represent the preferred codec for encoding and decoding audio and
+     * video.
+     */
+    private val audioCodec: AudioCodec
+        get() {
+            return AudioCodec.valueOf(sharedPreferences.getString(SettingsActivity.PREF_AUDIO_CODEC,
+                    SettingsActivity.PREF_AUDIO_CODEC_DEFAULT))
+        }
+    private val videoCodec: VideoCodec
+        get() {
+            return VideoCodec.valueOf(sharedPreferences.getString(SettingsActivity.PREF_VIDEO_CODEC,
+                    SettingsActivity.PREF_VIDEO_CODEC_DEFAULT))
+        }
+
+    /*
+     * Encoding parameters represent the sender side bandwidth constraints.
+     */
+    private val encodingParameters: EncodingParameters
+        get() {
+            val maxAudioBitrate = Integer.parseInt(
+                    sharedPreferences.getString(SettingsActivity.PREF_SENDER_MAX_AUDIO_BITRATE,
+                            SettingsActivity.PREF_SENDER_MAX_AUDIO_BITRATE_DEFAULT))
+            val maxVideoBitrate = Integer.parseInt(
+                    sharedPreferences.getString(SettingsActivity.PREF_SENDER_MAX_VIDEO_BITRATE,
+                            SettingsActivity.PREF_SENDER_MAX_VIDEO_BITRATE_DEFAULT))
+
+            return EncodingParameters(maxAudioBitrate, maxVideoBitrate)
+        }
 
     /*
      * Room events listener
@@ -264,6 +296,9 @@ class VideoActivity : AppCompatActivity() {
     private val cameraCapturerCompat by lazy {
         CameraCapturerCompat(this, getAvailableCameraSource())
     }
+    private val sharedPreferences by lazy {
+        PreferenceManager.getDefaultSharedPreferences(this@VideoActivity)
+    }
     private val audioManager by lazy {
         this@VideoActivity.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     }
@@ -349,6 +384,11 @@ class VideoActivity : AppCompatActivity() {
          * If connected to a Room then share the local video track.
          */
         localVideoTrack?.let { localParticipant?.publishTrack(it) }
+
+        /*
+         * Update encoding parameters if they have changed.
+         */
+        localParticipant?.setEncodingParameters(encodingParameters)
     }
 
     override fun onPause() {
@@ -395,6 +435,7 @@ class VideoActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.menu_settings -> startActivity(Intent(this, SettingsActivity::class.java))
             R.id.speaker_menu_item -> if (audioManager.isSpeakerphoneOn) {
                 audioManager.isSpeakerphoneOn = false
                 item.setIcon(R.drawable.ic_phonelink_ring_white_24dp)
@@ -480,6 +521,17 @@ class VideoActivity : AppCompatActivity() {
          * Add local video track to connect options to share with participants.
          */
         localVideoTrack?.let { connectOptionsBuilder.videoTracks(listOf(it)) }
+
+        /*
+         * Set the preferred audio and video codec for media.
+         */
+        connectOptionsBuilder.preferAudioCodecs(listOf(audioCodec))
+        connectOptionsBuilder.preferVideoCodecs(listOf(videoCodec))
+
+        /*
+         * Set the sender side encoding parameters.
+         */
+        connectOptionsBuilder.encodingParameters(encodingParameters)
 
         room = Video.connect(this, connectOptionsBuilder.build(), roomListener)
         setDisconnectAction()
