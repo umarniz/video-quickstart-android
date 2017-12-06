@@ -96,18 +96,21 @@ class SettingsActivity : AppCompatActivity() {
             }
 
             // Bind value
-            val value = sharedPreferences.getString(key, defaultValue)
+            val prefValue = sharedPreferences.getString(key, defaultValue)
             val codecStrings = codecEntries.toTypedArray()
 
-            listPreference.entries = codecStrings
-            listPreference.entryValues = codecStrings
-            listPreference.value = value
-            listPreference.summary = value
-            listPreference.onPreferenceChangeListener =
-                    Preference.OnPreferenceChangeListener { preference, newValue ->
-                        preference.summary = newValue.toString()
-                        true
-                    }
+            listPreference.apply {
+                entries = codecStrings
+                entryValues = codecStrings
+                value = prefValue
+                summary = prefValue
+                onPreferenceChangeListener =
+                        Preference.OnPreferenceChangeListener { preference, newValue ->
+                            preference.summary = newValue.toString()
+                            true
+                        }
+            }
+
         }
 
         private fun setupSenderBandwidthPreferences(key: String,
@@ -116,13 +119,16 @@ class SettingsActivity : AppCompatActivity() {
             val value = sharedPreferences.getString(key, defaultValue)
 
             // Set layout with input type number for edit text
-            editTextPreference.dialogLayoutResource = R.layout.preference_dialog_number_edittext
-            editTextPreference.summary = value
-            editTextPreference.onPreferenceChangeListener =
-                    Preference.OnPreferenceChangeListener { preference, newValue ->
-                        preference.summary = newValue.toString()
-                        true
-                    }
+            editTextPreference.apply {
+                dialogLayoutResource = R.layout.preference_dialog_number_edittext
+                summary = value
+                onPreferenceChangeListener =
+                        Preference.OnPreferenceChangeListener { preference, newValue ->
+                            preference.summary = newValue.toString()
+                            true
+                        }
+            }
+
         }
 
         companion object {

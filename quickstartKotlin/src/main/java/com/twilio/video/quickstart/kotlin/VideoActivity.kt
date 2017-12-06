@@ -233,11 +233,10 @@ class VideoActivity : AppCompatActivity() {
         override fun onDataTrackSubscribed(remoteParticipant: RemoteParticipant,
                                            remoteDataTrackPublication: RemoteDataTrackPublication,
                                            remoteDataTrack: RemoteDataTrack) {
-            Log.i(TAG, String.format("onDataTrackSubscribed: " +
+            Log.i(TAG, "onDataTrackSubscribed: " +
                     "[RemoteParticipant: identity=${remoteParticipant.identity}], " +
-                    "[RemoteDataTrack: enabled=${remoteDataTrack.isEnabled}, name=%s]",
-                    remoteDataTrack.isEnabled,
-                    remoteDataTrack.name))
+                    "[RemoteDataTrack: enabled=${remoteDataTrack.isEnabled}, " +
+                    "name=${remoteDataTrack.name}]")
             videoStatusTextView.text = "onDataTrackSubscribed"
         }
 
