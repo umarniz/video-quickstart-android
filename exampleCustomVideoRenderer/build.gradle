@@ -1,6 +1,13 @@
 apply from: "$rootProject.projectDir/gradle.properties"
 apply plugin: 'com.android.application'
 
+println(project.projectDir)
+project.ext.ASSET_DIR = projectDir.toString() + '/src/main/assets'
+
+assert file(project.ext.ASSET_DIR + "/mobilenet_quant_v1_224.tflite").exists()
+assert file(project.ext.ASSET_DIR + "/mobilenet_ssd.tflite").exists()
+assert file(project.ext.ASSET_DIR + "/labels.txt").exists()
+
 android {
     compileSdkVersion versions.compileSdk
     buildToolsVersion "${versions.buildTools}"
@@ -24,6 +31,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    aaptOptions {
+        noCompress "tflite"
+        noCompress "lite"
+    }
 }
 
 dependencies {
@@ -32,4 +43,5 @@ dependencies {
     implementation "com.twilio:video-android:${versions.videoAndroid}"
     implementation "com.android.support:appcompat-v7:${versions.supportLibrary}"
     implementation "com.android.support:design:${versions.supportLibrary}"
+    implementation 'org.tensorflow:tensorflow-lite:+@aar'
 }

@@ -8,9 +8,30 @@ import android.graphics.YuvImage;
 import android.os.Handler;
 import android.os.Looper;
 import android.widget.ImageView;
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.SystemClock;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
+import android.view.WindowManager.LayoutParams;
+import android.widget.Toast;
+import android.content.Context;
+import android.widget.TextView;
+import android.app.Activity;
 
 import com.twilio.video.I420Frame;
 import com.twilio.video.VideoRenderer;
+
+import tensorflow.demo.Classifier;
+import tensorflow.demo.TFLiteImageClassifier;
+import tensorflow.demo.env.ImageUtils;
 
 import org.webrtc.RendererCommon;
 import org.webrtc.YuvConverter;
@@ -18,6 +39,8 @@ import org.webrtc.YuvConverter;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.List;
+import java.lang.Float;
 
 import static android.graphics.ImageFormat.NV21;
 
@@ -28,35 +51,46 @@ import static android.graphics.ImageFormat.NV21;
  */
 public class SnapshotVideoRenderer implements VideoRenderer {
     private final ImageView imageView;
+    private final TextView textView;
     private final AtomicBoolean snapshotRequsted = new AtomicBoolean(false);
     private final Handler handler = new Handler(Looper.getMainLooper());
 
-    public SnapshotVideoRenderer(ImageView imageView) {
+    //TODO: added for TensorFlow Lite
+    private static final int INPUT_SIZE = 224;
+    private static final String MODEL_FILE = "mobilenet_quant_v1_224.tflite";
+    private static final String LABEL_FILE = "labels_mobilenet_quant_v1_224.txt";
+    private Classifier classifier;
+    private long lastProcessingTimeMs;
+    private Activity myActivity;
+    private static final boolean SAVE_BITMAP = false;
+    private Boolean isProcessing = false;
+    private Bitmap croppedBitmap = null;
+
+
+    public SnapshotVideoRenderer(ImageView imageView, Activity activity, TextView textview) {
         this.imageView = imageView;
+        this.myActivity = activity;
+        this.textView = textview;
+        if (croppedBitmap == null)
+            croppedBitmap = Bitmap.createBitmap(INPUT_SIZE, INPUT_SIZE, Bitmap.Config.ARGB_8888);
+        if (classifier == null)
+            classifier = TFLiteImageClassifier.create(myActivity.getAssets(), MODEL_FILE, LABEL_FILE, INPUT_SIZE);
     }
 
     @Override
     public void renderFrame(final I420Frame i420Frame) {
         // Capture bitmap and post to main thread
-        if (snapshotRequsted.compareAndSet(true, false)) {
-            /*
-             * I420Frame can be represented as texture or an in-memory buffer. yuvPlanes is not
-             * null and textureId is zero when frame is represented in memory and yuvPlanes is
-             * null textureId is a non zero value when the frame is represented as a texture.
-             */
-            final Bitmap bitmap = i420Frame.yuvPlanes == null ?
-                    captureBitmapFromTexture(i420Frame) :
-                    captureBitmapFromYuvFrame(i420Frame);
-            handler.post(() -> {
-                // Update the bitmap of image view
-                imageView.setImageBitmap(bitmap);
+        final Bitmap bitmap = i420Frame.yuvPlanes == null ?
+                captureBitmapFromTexture(i420Frame) :
+                captureBitmapFromYuvFrame(i420Frame);
 
-                // Frames must be released after rendering to free the native memory
-                i420Frame.release();
-            });
-        } else {
+        handler.post(() -> {
+            //pass bitmap to TFLite model
+            processAndRecognize(bitmap);
+            // Frames must be released after rendering to free the native memory
             i420Frame.release();
-        }
+        });
+
     }
 
     /**
@@ -228,5 +262,76 @@ public class SnapshotVideoRenderer implements VideoRenderer {
         src.position(0).limit(src.capacity());
         dst.put(src);
         dst.position(0).limit(dst.capacity());
+    }
+
+    protected synchronized void runInBackground(final Runnable r) {
+        if (handler != null) {
+            handler.post(r);
+        }
+    }
+
+    private void processAndRecognize(Bitmap srcBitmap) {
+//        L.w(getClass(), "PID: " + Thread.currentThread().getId());
+        if (isProcessing) {
+            return;
+        }
+
+        isProcessing = true;
+
+        Bitmap dstBitmap;
+        if (srcBitmap.getWidth() >= srcBitmap.getHeight()) {
+            dstBitmap = Bitmap.createBitmap(srcBitmap, srcBitmap.getWidth()/2 - srcBitmap.getHeight()/2, 0,
+                    srcBitmap.getHeight(), srcBitmap.getHeight()
+            );
+
+        } else {
+            dstBitmap = Bitmap.createBitmap(srcBitmap, 0, srcBitmap.getHeight()/2 - srcBitmap.getWidth()/2,
+                    srcBitmap.getWidth(), srcBitmap.getWidth()
+            );
+        }
+
+        Matrix frameToCropTransform = ImageUtils.getTransformationMatrix(dstBitmap.getWidth(), dstBitmap.getHeight(),
+                INPUT_SIZE, INPUT_SIZE, 0, true);
+
+        Matrix cropToFrameTransform = new Matrix();
+        frameToCropTransform.invert(cropToFrameTransform);
+
+        final Canvas canvas = new Canvas(croppedBitmap);
+        canvas.drawBitmap(dstBitmap, frameToCropTransform, null);
+
+        //TODO: enable this for analyzing the bitmaps, but it may degrade the performance
+        if (SAVE_BITMAP) {
+            ImageUtils.saveBitmap(srcBitmap, "remote_raw.png");
+            ImageUtils.saveBitmap(dstBitmap, "remote_rawCrop.png");
+            ImageUtils.saveBitmap(croppedBitmap, "remote_crop.png");
+        }
+
+        runInBackground(() -> {
+            //pass bitmap to TFLite model
+            final long startTime = SystemClock.uptimeMillis();
+            final List<Classifier.Recognition> results = classifier.recognizeImage(croppedBitmap);
+            lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
+            Float confidence = 0.0f;
+            String object = "";
+            final StringBuilder builder = new StringBuilder();
+            for (Classifier.Recognition result : results) {
+                if (result.getConfidence() > confidence) {
+                    confidence = result.getConfidence();
+                    object = result.getTitle();
+                }
+            }
+            builder.append(object).append(", Confidence:").append(confidence);
+            myActivity.runOnUiThread(new Runnable() {
+               @Override
+               public void run() {
+                   SnapshotVideoRenderer.this.textView.setText(builder);
+               }
+            });
+
+            isProcessing = false;
+        });
+
+        // recycle bitmaps
+        dstBitmap.recycle();
     }
 }

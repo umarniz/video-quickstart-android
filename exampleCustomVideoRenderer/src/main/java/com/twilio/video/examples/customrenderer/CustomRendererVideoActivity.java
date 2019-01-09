@@ -81,8 +81,8 @@ public class CustomRendererVideoActivity extends Activity {
 
     private void addVideo() {
         localVideoTrack = LocalVideoTrack.create(this, true, new CameraCapturer(this,
-                CameraCapturer.CameraSource.FRONT_CAMERA, null));
-        snapshotVideoRenderer = new SnapshotVideoRenderer(snapshotImageView);
+                CameraCapturer.CameraSource.BACK_CAMERA, null));
+        snapshotVideoRenderer = new SnapshotVideoRenderer(snapshotImageView, this, tapForSnapshotTextView);
         localVideoTrack.addRenderer(localVideoView);
         localVideoTrack.addRenderer(snapshotVideoRenderer);
         localVideoView.setOnClickListener(v -> {
