@@ -16,6 +16,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.koushikdutta.async.future.FutureCallback;
@@ -90,6 +91,7 @@ public class DataTrackActivity extends AppCompatActivity {
     private Snackbar snackbar;
     private EditText roomEditText;
     private Button connectButton;
+    private ProgressBar reconnectingProgressBar;
     private CollaborativeDrawingView collaborativeDrawingView;
 
     @Override
@@ -111,12 +113,28 @@ public class DataTrackActivity extends AppCompatActivity {
         snackbar = Snackbar.make(containerLayout,
                 R.string.connect_to_share,
                 Snackbar.LENGTH_INDEFINITE);
+        reconnectingProgressBar = findViewById(R.id.reconnecting_progress_bar);
         setSupportActionBar(toolbar);
         snackbar.show();
         initializeUi();
 
         // Set access token
         setAccessToken();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        /*
+         * Update reconnecting UI
+         */
+        if (room != null) {
+            reconnectingProgressBar.setVisibility((room.getState() != Room.State.RECONNECTING) ?
+                    View.GONE :
+                    View.VISIBLE);
+            snackbar.setText("Connected to " + room.getName());
+        }
     }
 
     @Override
@@ -291,6 +309,7 @@ public class DataTrackActivity extends AppCompatActivity {
 
                     initializeUi();
                 }
+                reconnectingProgressBar.setVisibility(View.GONE);
             }
 
             @Override
@@ -319,6 +338,18 @@ public class DataTrackActivity extends AppCompatActivity {
             @Override
             public void onRecordingStopped(Room room) {
 
+            }
+
+            @Override
+            public void onReconnecting(Room room, TwilioException exception) {
+                reconnectingProgressBar.setVisibility(View.VISIBLE);
+                snackbar.setText("Reconnecting to " + room.getName());
+            }
+
+            @Override
+            public void onReconnected(Room room) {
+                reconnectingProgressBar.setVisibility(View.GONE);
+                snackbar.setText("Connected to " + room.getName());
             }
         };
     }
