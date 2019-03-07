@@ -380,6 +380,7 @@ class VideoActivity : AppCompatActivity() {
     private var previousMicrophoneMute = false
     private lateinit var localVideoView: VideoRenderer
     private var disconnectedFromOnDestroy = false
+    private var isSpeakerPhoneEnabled = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -462,6 +463,11 @@ class VideoActivity : AppCompatActivity() {
         localParticipant?.setEncodingParameters(encodingParameters)
 
         /*
+         * Route audio through cached value.
+         */
+        audioManager.isSpeakerphoneOn = isSpeakerPhoneEnabled
+
+        /*
          * Update reconnecting UI
          */
         room?.let {
@@ -520,9 +526,11 @@ class VideoActivity : AppCompatActivity() {
             R.id.speaker_menu_item -> if (audioManager.isSpeakerphoneOn) {
                 audioManager.isSpeakerphoneOn = false
                 item.setIcon(R.drawable.ic_phonelink_ring_white_24dp)
+                isSpeakerPhoneEnabled = false
             } else {
                 audioManager.isSpeakerphoneOn = true
                 item.setIcon(R.drawable.ic_volume_up_white_24dp)
+                isSpeakerPhoneEnabled = true
             }
         }
         return true
