@@ -116,6 +116,16 @@ class VideoActivity : AppCompatActivity() {
             room.remoteParticipants?.firstOrNull()?.let { addRemoteParticipant(it) }
         }
 
+        override fun onReconnected(room: Room) {
+            videoStatusTextView.text = "Connected to ${room.name}"
+            reconnectingProgressBar.visibility = View.GONE;
+        }
+
+        override fun onReconnecting(room: Room, twilioException: TwilioException) {
+            videoStatusTextView.text = "Reconnecting to ${room.name}"
+            reconnectingProgressBar.visibility = View.VISIBLE;
+        }
+
         override fun onConnectFailure(room: Room, e: TwilioException) {
             videoStatusTextView.text = "Failed to connect"
             configureAudio(false)
@@ -125,6 +135,7 @@ class VideoActivity : AppCompatActivity() {
         override fun onDisconnected(room: Room, e: TwilioException?) {
             localParticipant = null
             videoStatusTextView.text = "Disconnected from ${room.name}"
+            reconnectingProgressBar.visibility = View.GONE;
             this@VideoActivity.room = null
             // Only reinitialize the UI if disconnect was not called from onDestroy()
             if (!disconnectedFromOnDestroy) {
@@ -449,6 +460,16 @@ class VideoActivity : AppCompatActivity() {
          * Update encoding parameters if they have changed.
          */
         localParticipant?.setEncodingParameters(encodingParameters)
+
+        /*
+         * Update reconnecting UI
+         */
+        room?.let {
+            reconnectingProgressBar.visibility = if (it.state != Room.State.RECONNECTING)
+                View.GONE else
+                View.VISIBLE
+            videoStatusTextView.text = "Connected to ${it.name}"
+        }
     }
 
     override fun onPause() {
