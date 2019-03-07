@@ -293,6 +293,12 @@ public class VideoActivity extends AppCompatActivity {
          * Update encoding parameters
          */
         encodingParameters = newEncodingParameters;
+
+        /*
+         * If audio routing switched to headset during a call, route through speaker.
+         */
+         AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+         audioManager.setSpeakerphoneOn(true);
     }
 
     @Override
