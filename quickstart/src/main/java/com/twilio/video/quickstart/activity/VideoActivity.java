@@ -147,6 +147,7 @@ public class VideoActivity extends AppCompatActivity {
     private boolean previousMicrophoneMute;
     private VideoRenderer localVideoView;
     private boolean disconnectedFromOnDestroy;
+    private boolean isSpeakerPhoneEnabled = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -177,7 +178,7 @@ public class VideoActivity extends AppCompatActivity {
          * Needed for setting/abandoning audio focus during call
          */
         audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-        audioManager.setSpeakerphoneOn(true);
+        audioManager.setSpeakerphoneOn(isSpeakerPhoneEnabled);
 
         /*
          * Check camera and microphone permissions. Needed in Android M.
@@ -212,9 +213,11 @@ public class VideoActivity extends AppCompatActivity {
                 if (audioManager.isSpeakerphoneOn()) {
                     audioManager.setSpeakerphoneOn(false);
                     item.setIcon(ic_phonelink_ring_white_24dp);
+                    isSpeakerPhoneEnabled = false;
                 } else {
                     audioManager.setSpeakerphoneOn(true);
                     item.setIcon(ic_volume_up_white_24dp);
+                    isSpeakerPhoneEnabled = true;
                 }
                 return true;
             default:
@@ -292,10 +295,9 @@ public class VideoActivity extends AppCompatActivity {
         encodingParameters = newEncodingParameters;
 
         /*
-         * If audio routing switched to headset during a call, route through speaker.
+         * Route audio through cached value.
          */
-         AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-         audioManager.setSpeakerphoneOn(true);
+         audioManager.setSpeakerphoneOn(isSpeakerPhoneEnabled);
 
         /*
          * Update reconnecting UI
@@ -327,6 +329,8 @@ public class VideoActivity extends AppCompatActivity {
             localVideoTrack.release();
             localVideoTrack = null;
         }
+        // Cache speaker phone state
+        isSpeakerPhoneEnabled = audioManager.isSpeakerphoneOn();
         super.onPause();
     }
 
