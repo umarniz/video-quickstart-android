@@ -329,8 +329,6 @@ public class VideoActivity extends AppCompatActivity {
             localVideoTrack.release();
             localVideoTrack = null;
         }
-        // Cache speaker phone state
-        isSpeakerPhoneEnabled = audioManager.isSpeakerphoneOn();
         super.onPause();
     }
 
