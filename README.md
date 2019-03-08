@@ -120,7 +120,7 @@ The following snippet shows an example `build.gradle` with APK splits enabled.
 The adoption of APK splits requires developers to submit multiple APKs to the Play Store. Refer to [Google’s documentation](https://developer.android.com/google/play/publishing/multiple-apks.html) for how to support this in your application.
 
 ## Troubleshooting Audio
-The following sections provide guidance on how to ensure optimal audio quality in your applications.
+The following sections provide guidance on how to ensure optimal audio quality in your applications. Results may vary when using APIs within the `org.webrtc` package. While we expose these APIs we do not actively test their usage.
 
 ### Configuring AudioManager
 The following snippet shows how to configure 
@@ -213,6 +213,10 @@ effects, reference the following snippet for enabling OpenSL ES:
     
     // Check if OpenSL ES is disabled 
     WebRtcAudioUtils.deviceIsBlacklistedForOpenSLESUsage()
+
+### Known Issues
+- Using the following WebRTC based acoustic echo canceler on the Pixel 3 XL will disable the microphone system wide. <br>
+Usage: `WebRtcAudioUtils.setWebRtcBasedAcousticEchoCanceler(true);`<br> A bug has been filed with WebRTC and can be found [here](https://bugs.chromium.org/p/webrtc/issues/detail?id=10386#c1).
     
 ## Rendering Video 
 A `VideoTrack` can be rendered in your application using `addRenderer` which takes an
