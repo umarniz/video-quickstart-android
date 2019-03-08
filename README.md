@@ -215,7 +215,8 @@ effects, reference the following snippet for enabling OpenSL ES:
     WebRtcAudioUtils.deviceIsBlacklistedForOpenSLESUsage()
 
 ### Known Issues
-- Using the WebRTC based acoustic echo canceler on the Pixel 3 XL will disable the microphone system wide.
+- Using the following WebRTC based acoustic echo canceler on the Pixel 3 XL will disable the microphone system wide. <br>
+Usage: `WebRtcAudioUtils.setWebRtcBasedAcousticEchoCanceler(true);`<br> A bug has been filed with WebRTC and can be found [here](https://bugs.chromium.org/p/webrtc/issues/detail?id=10386#c1).
     
 ## Rendering Video 
 A `VideoTrack` can be rendered in your application using `addRenderer` which takes an
