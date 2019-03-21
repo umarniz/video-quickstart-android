@@ -110,6 +110,24 @@ jobs:
       # Save cache
       - save-cache: *save-cache-gradle
 
+  build-exampleMultipartyVideo:
+    <<: *build-defaults
+    resource_class: large
+    steps:
+      # Setup
+      - checkout
+      - attach_workspace:
+          at: *workspace
+      - restore-cache: *restore-cache-gradle
+
+      # Build app
+      - run:
+          name: Build exampleDataTrack
+          command: ./gradlew -q exampleMultipartyVideo:assemble
+
+      # Save cache
+      - save-cache: *save-cache-gradle
+
 
   build-exampleScreenCapturer:
     <<: *build-defaults
@@ -203,6 +221,9 @@ workflows:
           requires:
               - setup-workspace
       - build-exampleDataTrack:
+          requires:
+              - setup-workspace
+      - build-exampleMultipartyVideo:
           requires:
               - setup-workspace
       - build-exampleScreenCapturer:
