@@ -11,52 +11,50 @@
         android:id="@+id/video_container_top"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal"
         android:layout_weight="0.5"
-        >
+        android:orientation="horizontal">
+
         <com.twilio.video.VideoTextureView
             android:id="@+id/videoView1"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="0.5"
-            />
+            android:layout_weight="0.5" />
 
         <com.twilio.video.VideoTextureView
             android:id="@+id/videoView2"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="gone"
             android:layout_weight="0.5"
-             />
-
-
+            android:visibility="gone" />
     </LinearLayout>
 
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:layout_gravity="center"/>
- <LinearLayout
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+    <LinearLayout
         android:id="@+id/video_container_bottom"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:layout_weight="0.5">
-     <com.twilio.video.VideoTextureView
+        android:layout_weight="0.5"
+        android:orientation="horizontal">
+
+        <com.twilio.video.VideoTextureView
             android:id="@+id/videoView3"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="gone"
-            android:layout_weight="0.5" />
-     <com.twilio.video.VideoTextureView
+            android:layout_weight="0.5"
+            android:visibility="gone" />
+
+        <com.twilio.video.VideoTextureView
             android:id="@+id/videoView4"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="gone"
             android:layout_weight="0.5"
-             />
+            android:visibility="gone" />
     </LinearLayout>
 
 </LinearLayout>
