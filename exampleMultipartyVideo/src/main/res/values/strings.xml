@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Video Quickstart</string>
+    <string name="app_name">MultiParty Video Example</string>
     <string name="action_settings">Settings</string>
     <string name="room_status">status</string>
     <string name="error_retrieving_access_token">Error retrieving token</string>
