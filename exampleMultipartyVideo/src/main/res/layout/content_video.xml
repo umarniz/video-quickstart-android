@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".RoomActivity">
+
+    <LinearLayout
+        android:id="@+id/video_container_top"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:layout_weight="0.5"
+        >
+        <com.twilio.video.VideoTextureView
+            android:id="@+id/videoView1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="0.5"
+            />
+
+        <com.twilio.video.VideoTextureView
+            android:id="@+id/videoView2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="0.5"
+             />
+
+
+    </LinearLayout>
+ <LinearLayout
+        android:id="@+id/video_container_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:layout_weight="0.5">
+     <com.twilio.video.VideoTextureView
+            android:id="@+id/videoView3"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+                 android:layout_weight="0.5" />
+     <com.twilio.video.VideoTextureView
+            android:id="@+id/videoView4"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="0.5"
+             />
+    </LinearLayout>
+
+</LinearLayout>
