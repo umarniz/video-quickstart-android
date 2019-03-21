@@ -458,7 +458,7 @@ public class MultiPartyActivity extends AppCompatActivity {
 
     private VideoTextureView getAvailableVideoTextureView() {
         if (availableVideoTextureViews.size() == 0) {
-            return null;
+            throw new RuntimeException(String.format("This example app doesn't support more than %d RemoteParticipants", MAX_PARTICIPANTS));
         }
         // Just remove the first element
         return availableVideoTextureViews.pop();
@@ -497,10 +497,6 @@ public class MultiPartyActivity extends AppCompatActivity {
      */
     private void addRemoteParticipantVideo(RemoteParticipant remoteParticipant, VideoTrack videoTrack) {
         VideoTextureView videoTextureView = getAvailableVideoTextureView();
-        if (videoTextureView == null) {
-            Log.w(TAG, String.format("This example app doesn't support more than %d RemoteParticipants", MAX_PARTICIPANTS));
-            return;
-        }
         videoTextureView.setTag(videoTrack);
         videoTextureView.setVisibility(View.VISIBLE);
         videoTrack.addRenderer(videoTextureView);
@@ -527,7 +523,7 @@ public class MultiPartyActivity extends AppCompatActivity {
              * Remove video only if subscribed to participant track
              */
             if (remoteVideoTrackPublication.isTrackSubscribed()) {
-                removeParticipantVideo(remoteParticipant);//remoteVideoTrackPublication.getRemoteVideoTrack());
+                removeParticipantVideo(remoteParticipant);
             }
         }
     }
