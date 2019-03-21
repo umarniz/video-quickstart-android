@@ -25,6 +25,7 @@
             android:id="@+id/videoView2"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:visibility="gone"
             android:layout_weight="0.5"
              />
 
@@ -35,6 +36,7 @@
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:visibility="gone"
         android:layout_gravity="center"/>
  <LinearLayout
         android:id="@+id/video_container_bottom"
@@ -46,11 +48,13 @@
             android:id="@+id/videoView3"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-                 android:layout_weight="0.5" />
+            android:visibility="gone"
+            android:layout_weight="0.5" />
      <com.twilio.video.VideoTextureView
             android:id="@+id/videoView4"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:visibility="gone"
             android:layout_weight="0.5"
              />
     </LinearLayout>

@@ -19,8 +19,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -55,27 +53,22 @@ import com.twilio.video.Room;
 import com.twilio.video.TwilioException;
 import com.twilio.video.Video;
 import com.twilio.video.VideoCodec;
-import com.twilio.video.VideoRenderer;
 import com.twilio.video.VideoTextureView;
 import com.twilio.video.VideoTrack;
-import com.twilio.video.VideoView;
 import com.twilio.video.Vp8Codec;
 import com.twilio.video.Vp9Codec;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 import java.util.UUID;
+
+import static android.view.View.GONE;
 
 public class RoomActivity extends AppCompatActivity {
     private static final int MAX_PARTICIPANTS=4;
 
-    private static final int LOCAL_PARTICIPANT_VIDEO=0;
-    private static final int REMOTE_PARTICIPANT_VIDEO_1=1;
-    private static final int REMOTE_PARTICIPANT_VIDEO_2=2;
-    private static final int REMOTE_PARTICIPANT_VIDEO_3=3;
     private static final int CAMERA_MIC_PERMISSION_REQUEST_CODE = 5;
     private static final String TAG = "RoomActivity";
 
@@ -144,7 +137,7 @@ public class RoomActivity extends AppCompatActivity {
     private boolean disconnectedFromOnDestroy;
     private boolean isSpeakerPhoneEnabled = true;
 
-    private List<VideoTextureView> availableVideoTextureViews = new ArrayList<>();
+    private Stack<VideoTextureView> availableVideoTextureViews = new Stack<>();
     private Map<Participant, VideoTextureView> videoViewMap = new HashMap<>();
     private VideoTextureView localVideoTextureView;
 
@@ -154,22 +147,15 @@ public class RoomActivity extends AppCompatActivity {
         setContentView(R.layout.activity_video);
 
         videoStatusTextView = findViewById(R.id.videoStatusText);
-
         reconnectingProgressBar = findViewById(R.id.progressBar);
 
-        localVideoTextureView = findViewById(R.id.videoView1);
-        localVideoTextureView.setMirror(true);
-        videoViewMap.put(localParticipant, localVideoTextureView);
-
-        availableVideoTextureViews.add(findViewById(R.id.videoView2));
-        availableVideoTextureViews.add(findViewById(R.id.videoView3));
-        availableVideoTextureViews.add(findViewById(R.id.videoView4));
 
         connectActionFab = findViewById(R.id.connect_action_fab);
         switchCameraActionFab = findViewById(R.id.switch_camera_action_fab);
         localVideoActionFab = findViewById(R.id.local_video_action_fab);
         muteActionFab = findViewById(R.id.mute_action_fab);
 
+        initializeVideoTextureViews();
         /*
          * Get shared preferences to read settings
          */
@@ -263,7 +249,7 @@ public class RoomActivity extends AppCompatActivity {
          */
         if (room != null) {
             reconnectingProgressBar.setVisibility((room.getState() != Room.State.RECONNECTING) ?
-                    View.GONE :
+                    GONE :
                     View.VISIBLE);
             videoStatusTextView.setText("Connected to " + room.getName());
         }
@@ -492,12 +478,34 @@ public class RoomActivity extends AppCompatActivity {
         connectDialog.show();
     }
 
+    private void initializeVideoTextureViews(){
+        localVideoTextureView = findViewById(R.id.videoView1);
+        localVideoTextureView.setMirror(true);
+
+        videoViewMap.clear();
+        videoViewMap.put(localParticipant, localVideoTextureView);
+
+        availableVideoTextureViews.clear();
+
+        VideoTextureView videoTextureView4 = findViewById(R.id.videoView4);
+        videoTextureView4.setVisibility(GONE);
+        availableVideoTextureViews.push(videoTextureView4);
+
+        VideoTextureView videoTextureView3 = findViewById(R.id.videoView3);
+        videoTextureView3.setVisibility(GONE);
+        availableVideoTextureViews.push(videoTextureView3);
+
+        VideoTextureView videoTextureView2 = findViewById(R.id.videoView2);
+        videoTextureView2.setVisibility(GONE);
+        availableVideoTextureViews.push(videoTextureView2);
+    }
+
     private VideoTextureView getAvailableVideoTextureView() {
         if(availableVideoTextureViews.size() == 0){
             return null;
         }
         // Just remove the first element
-        return availableVideoTextureViews.remove(0);
+        return availableVideoTextureViews.pop();
     }
 
     /*
@@ -538,6 +546,7 @@ public class RoomActivity extends AppCompatActivity {
             return;
         }
         videoTextureView.setTag(videoTrack);
+        videoTextureView.setVisibility(View.VISIBLE);
         videoTrack.addRenderer(videoTextureView);
         videoViewMap.put(remoteParticipant, videoTextureView);
     }
@@ -573,6 +582,7 @@ public class RoomActivity extends AppCompatActivity {
         videoTrack.removeRenderer(videoTextureView);
         videoTextureView.setTag(null);
         videoViewMap.remove(remoteParticipant);
+        videoTextureView.setVisibility(GONE);
         availableVideoTextureViews.add(videoTextureView);
     }
 
@@ -602,7 +612,7 @@ public class RoomActivity extends AppCompatActivity {
             @Override
             public void onReconnected(@NonNull Room room) {
                 videoStatusTextView.setText("Connected to " + room.getName());
-                reconnectingProgressBar.setVisibility(View.GONE);
+                reconnectingProgressBar.setVisibility(GONE);
             }
 
             @Override
@@ -616,11 +626,12 @@ public class RoomActivity extends AppCompatActivity {
             public void onDisconnected(Room room, TwilioException e) {
                 localParticipant = null;
                 videoStatusTextView.setText("Disconnected from " + room.getName());
-                reconnectingProgressBar.setVisibility(View.GONE);
+                reconnectingProgressBar.setVisibility(GONE);
                 RoomActivity.this.room = null;
                 // Only reinitialize the UI if disconnect was not called from onDestroy()
                 if (!disconnectedFromOnDestroy) {
                     configureAudio(false);
+                    initializeVideoTextureViews();
                     intializeUI();
                 }
             }
@@ -940,20 +951,6 @@ public class RoomActivity extends AppCompatActivity {
             connectDialog.dismiss();
         };
     }
-
-//    private View.OnClickListener switchCameraClickListener() {
-//        return v -> {
-//            if (cameraCapturerCompat != null) {
-//                CameraSource cameraSource = cameraCapturerCompat.getCameraSource();
-//                cameraCapturerCompat.switchCamera();
-//                if (thumbnailVideoView.getVisibility() == View.VISIBLE) {
-//                    thumbnailVideoView.setMirror(cameraSource == CameraSource.BACK_CAMERA);
-//                } else {
-//                    primaryVideoView.setMirror(cameraSource == CameraSource.BACK_CAMERA);
-//                }
-//            }
-//        };
-//    }
 
     private View.OnClickListener localVideoClickListener() {
         return v -> {
