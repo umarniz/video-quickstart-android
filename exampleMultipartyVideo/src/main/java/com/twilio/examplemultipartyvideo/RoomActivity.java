@@ -32,16 +32,11 @@ import com.twilio.video.CameraCapturer;
 import com.twilio.video.CameraCapturer.CameraSource;
 import com.twilio.video.ConnectOptions;
 import com.twilio.video.EncodingParameters;
-import com.twilio.video.G722Codec;
-import com.twilio.video.H264Codec;
-import com.twilio.video.IsacCodec;
 import com.twilio.video.LocalAudioTrack;
 import com.twilio.video.LocalParticipant;
 import com.twilio.video.LocalVideoTrack;
 import com.twilio.video.OpusCodec;
 import com.twilio.video.Participant;
-import com.twilio.video.PcmaCodec;
-import com.twilio.video.PcmuCodec;
 import com.twilio.video.RemoteAudioTrack;
 import com.twilio.video.RemoteAudioTrackPublication;
 import com.twilio.video.RemoteDataTrack;
@@ -56,7 +51,6 @@ import com.twilio.video.VideoCodec;
 import com.twilio.video.VideoTextureView;
 import com.twilio.video.VideoTrack;
 import com.twilio.video.Vp8Codec;
-import com.twilio.video.Vp9Codec;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -67,7 +61,7 @@ import java.util.UUID;
 import static android.view.View.GONE;
 
 public class RoomActivity extends AppCompatActivity {
-    private static final int MAX_PARTICIPANTS=4;
+    private static final int MAX_PARTICIPANTS = 4;
 
     private static final int CAMERA_MIC_PERMISSION_REQUEST_CODE = 5;
     private static final String TAG = "RoomActivity";
@@ -149,7 +143,6 @@ public class RoomActivity extends AppCompatActivity {
         videoStatusTextView = findViewById(R.id.videoStatusText);
         reconnectingProgressBar = findViewById(R.id.progressBar);
 
-
         connectActionFab = findViewById(R.id.connect_action_fab);
         switchCameraActionFab = findViewById(R.id.switch_camera_action_fab);
         localVideoActionFab = findViewById(R.id.local_video_action_fab);
@@ -169,7 +162,7 @@ public class RoomActivity extends AppCompatActivity {
         /*
          * Needed for setting/abandoning audio focus during call
          */
-        audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         audioManager.setSpeakerphoneOn(isSpeakerPhoneEnabled);
 
         /*
@@ -210,15 +203,19 @@ public class RoomActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected  void onResume() {
-        super.onResume();
+    public AudioCodec getAudioCodec() {
+        return new OpusCodec();
+    }
 
-        /*
-         * Update preferred audio and video codec in case changed in settings
-         */
-        audioCodec = new OpusCodec();
-        videoCodec = new Vp8Codec();
+    public VideoCodec getVideoCodec() {
+        return new Vp8Codec();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        audioCodec = getAudioCodec();
+        videoCodec = getVideoCodec();
 
         /*
          * If the local video track was released when the app was put in the background, recreate.
@@ -304,14 +301,14 @@ public class RoomActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    private boolean checkPermissionForCameraAndMicrophone(){
+    private boolean checkPermissionForCameraAndMicrophone() {
         int resultCamera = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
         int resultMic = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
         return resultCamera == PackageManager.PERMISSION_GRANTED &&
                 resultMic == PackageManager.PERMISSION_GRANTED;
     }
 
-    private void requestPermissionForCameraAndMicrophone(){
+    private void requestPermissionForCameraAndMicrophone() {
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA) ||
                 ActivityCompat.shouldShowRequestPermissionRationale(this,
                         Manifest.permission.RECORD_AUDIO)) {
@@ -416,47 +413,6 @@ public class RoomActivity extends AppCompatActivity {
     }
 
     /*
-     * Get the preferred audio codec from shared preferences
-     */
-    private AudioCodec getAudioCodecPreference(String key, String defaultValue) {
-        final String audioCodecName = preferences.getString(key, defaultValue);
-
-        switch (audioCodecName) {
-            case IsacCodec.NAME:
-                return new IsacCodec();
-            case OpusCodec.NAME:
-                return new OpusCodec();
-            case PcmaCodec.NAME:
-                return new PcmaCodec();
-            case PcmuCodec.NAME:
-                return new PcmuCodec();
-            case G722Codec.NAME:
-                return new G722Codec();
-            default:
-                return new OpusCodec();
-        }
-    }
-
-    /*
-     * Get the preferred video codec from shared preferences
-     */
-    private VideoCodec getVideoCodecPreference(String key, String defaultValue) {
-        final String videoCodecName = preferences.getString(key, defaultValue);
-
-        switch (videoCodecName) {
-            case Vp8Codec.NAME:
-                return new Vp8Codec(false);
-            case H264Codec.NAME:
-                return new H264Codec();
-            case Vp9Codec.NAME:
-                return new Vp9Codec();
-            default:
-                return new Vp8Codec();
-        }
-    }
-
-
-    /*
      * The actions performed during disconnect.
      */
     private void setDisconnectAction() {
@@ -478,7 +434,7 @@ public class RoomActivity extends AppCompatActivity {
         connectDialog.show();
     }
 
-    private void initializeVideoTextureViews(){
+    private void initializeVideoTextureViews() {
         localVideoTextureView = findViewById(R.id.videoView1);
         localVideoTextureView.setMirror(true);
 
@@ -501,7 +457,7 @@ public class RoomActivity extends AppCompatActivity {
     }
 
     private VideoTextureView getAvailableVideoTextureView() {
-        if(availableVideoTextureViews.size() == 0){
+        if (availableVideoTextureViews.size() == 0) {
             return null;
         }
         // Just remove the first element
@@ -513,7 +469,7 @@ public class RoomActivity extends AppCompatActivity {
      */
     private void addRemoteParticipant(RemoteParticipant remoteParticipant) {
         remoteParticipantIdentity = remoteParticipant.getIdentity();
-        videoStatusTextView.setText("RemoteParticipant "+ remoteParticipantIdentity + " joined");
+        videoStatusTextView.setText(String.format("RemoteParticipant %s joined", remoteParticipantIdentity));
 
         /*
          * Add remote participant renderer
@@ -541,7 +497,7 @@ public class RoomActivity extends AppCompatActivity {
      */
     private void addRemoteParticipantVideo(RemoteParticipant remoteParticipant, VideoTrack videoTrack) {
         VideoTextureView videoTextureView = getAvailableVideoTextureView();
-        if(videoTextureView == null){
+        if (videoTextureView == null) {
             Log.w(TAG, String.format("This example app doesn't support more than %d RemoteParticipants", MAX_PARTICIPANTS));
             return;
         }
@@ -578,7 +534,7 @@ public class RoomActivity extends AppCompatActivity {
 
     private void removeParticipantVideo(RemoteParticipant remoteParticipant) {
         VideoTextureView videoTextureView = videoViewMap.get(remoteParticipant);
-        VideoTrack videoTrack = (VideoTrack)videoTextureView.getTag();
+        VideoTrack videoTrack = (VideoTrack) videoTextureView.getTag();
         videoTrack.removeRenderer(videoTextureView);
         videoTextureView.setTag(null);
         videoViewMap.remove(remoteParticipant);
@@ -594,7 +550,7 @@ public class RoomActivity extends AppCompatActivity {
             @Override
             public void onConnected(Room room) {
                 localParticipant = room.getLocalParticipant();
-                videoStatusTextView.setText("Connected to " + room.getName());
+                videoStatusTextView.setText(String.format("Connected to %s", room.getName()));
                 setTitle(room.getName());
 
                 for (RemoteParticipant remoteParticipant : room.getRemoteParticipants()) {
@@ -605,13 +561,13 @@ public class RoomActivity extends AppCompatActivity {
 
             @Override
             public void onReconnecting(@NonNull Room room, @NonNull TwilioException twilioException) {
-                videoStatusTextView.setText("Reconnecting to " + room.getName());
+                videoStatusTextView.setText(String.format("Reconnecting to %s", room.getName()));
                 reconnectingProgressBar.setVisibility(View.VISIBLE);
             }
 
             @Override
             public void onReconnected(@NonNull Room room) {
-                videoStatusTextView.setText("Connected to " + room.getName());
+                videoStatusTextView.setText(String.format("Connected to %s", room.getName()));
                 reconnectingProgressBar.setVisibility(GONE);
             }
 
@@ -625,7 +581,7 @@ public class RoomActivity extends AppCompatActivity {
             @Override
             public void onDisconnected(Room room, TwilioException e) {
                 localParticipant = null;
-                videoStatusTextView.setText("Disconnected from " + room.getName());
+                videoStatusTextView.setText(String.format("Disconnected from %s", room.getName()));
                 reconnectingProgressBar.setVisibility(GONE);
                 RoomActivity.this.room = null;
                 // Only reinitialize the UI if disconnect was not called from onDestroy()
@@ -1043,7 +999,8 @@ public class RoomActivity extends AppCompatActivity {
                             .setAudioAttributes(playbackAttributes)
                             .setAcceptsDelayedFocusGain(true)
                             .setOnAudioFocusChangeListener(
-                                    i -> { })
+                                    i -> {
+                                    })
                             .build();
             audioManager.requestAudioFocus(focusRequest);
         } else {
