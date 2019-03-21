@@ -60,11 +60,11 @@ import java.util.UUID;
 
 import static android.view.View.GONE;
 
-public class RoomActivity extends AppCompatActivity {
+public class MultiPartyActivity extends AppCompatActivity {
     private static final int MAX_PARTICIPANTS = 4;
 
     private static final int CAMERA_MIC_PERMISSION_REQUEST_CODE = 5;
-    private static final String TAG = "RoomActivity";
+    private static final String TAG = "MultiPartyActivity";
 
     /*
      * Audio and video tracks can be created with names. This feature is useful for categorizing
@@ -582,7 +582,7 @@ public class RoomActivity extends AppCompatActivity {
                 localParticipant = null;
                 videoStatusTextView.setText(String.format("Disconnected from %s", room.getName()));
                 reconnectingProgressBar.setVisibility(GONE);
-                RoomActivity.this.room = null;
+                MultiPartyActivity.this.room = null;
                 // Only reinitialize the UI if disconnect was not called from onDestroy()
                 if (!disconnectedFromOnDestroy) {
                     configureAudio(false);
@@ -924,7 +924,7 @@ public class RoomActivity extends AppCompatActivity {
                     switchCameraActionFab.hide();
                 }
                 localVideoActionFab.setImageDrawable(
-                        ContextCompat.getDrawable(RoomActivity.this, icon));
+                        ContextCompat.getDrawable(MultiPartyActivity.this, icon));
             }
         };
     }
@@ -942,7 +942,7 @@ public class RoomActivity extends AppCompatActivity {
                 int icon = enable ?
                         R.drawable.ic_mic_white_24dp : R.drawable.ic_mic_off_black_24dp;
                 muteActionFab.setImageDrawable(ContextCompat.getDrawable(
-                        RoomActivity.this, icon));
+                        MultiPartyActivity.this, icon));
             }
         };
     }
@@ -954,9 +954,9 @@ public class RoomActivity extends AppCompatActivity {
                 .asString()
                 .setCallback((e, token) -> {
                     if (e == null) {
-                        RoomActivity.this.accessToken = token;
+                        MultiPartyActivity.this.accessToken = token;
                     } else {
-                        Toast.makeText(RoomActivity.this,
+                        Toast.makeText(MultiPartyActivity.this,
                                 R.string.error_retrieving_access_token, Toast.LENGTH_LONG)
                                 .show();
                     }
