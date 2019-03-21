@@ -16,9 +16,9 @@ The project demonstrates how to use Twilio's Programmable Video SDK for multi-pa
 
 See the master [README](https://github.com/twilio/video-quickstart-android/blob/master/README.md) for instructions on how to generate access tokens that are needed to connect to a Room.
 
-You will need to provide a hardcoded token, or token server URL in `local.properties`. Please note that this example is designed to work in a Group Room, including the usage of [VP8 Simulcast](https://www.twilio.com/docs/video/tutorials/working-with-vp8-simulcast) and [Dominant Speaker](https://www.twilio.com/docs/video/detecting-dominant-speaker) events. You can create Group Rooms using the [REST API](https://www.twilio.com/docs/video/api/rooms-resource), or by selecting them as the default type in the [console](https://www.twilio.com/console/video/configure).
+You will need to provide a hardcoded token, or token server URL in `local.properties`. Please note that this example is designed to work in a Group Room, including the usage of [VP8 Simulcast](https://www.twilio.com/docs/video/tutorials/working-with-vp8-simulcast). You can create Group Rooms using the [REST API](https://www.twilio.com/docs/video/api/rooms-resource), or by selecting them as the default type in the [console](https://www.twilio.com/console/video/configure).
 
-This example requires Android Studio 3.0 or higher, as well as a device or simulator running Android 4.2 (JELLY BEAN) or above. Sharing video from the camera is not supported on an Android simulator.
+This example requires Android Studio 3.0 or higher, as well as a device or simulator running Android 4.2 (JELLY BEAN) or above.
 
 ### Known Issues
 
