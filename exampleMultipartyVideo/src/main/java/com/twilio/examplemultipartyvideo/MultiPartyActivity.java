@@ -141,7 +141,7 @@ public class MultiPartyActivity extends AppCompatActivity {
         setContentView(R.layout.activity_video);
 
         videoStatusTextView = findViewById(R.id.videoStatusText);
-        reconnectingProgressBar = findViewById(R.id.progressBar);
+        reconnectingProgressBar = findViewById(R.id.reconnecting_progress_bar);
 
         connectActionFab = findViewById(R.id.connect_action_fab);
         switchCameraActionFab = findViewById(R.id.switch_camera_action_fab);
@@ -435,7 +435,7 @@ public class MultiPartyActivity extends AppCompatActivity {
     }
 
     private void initializeVideoTextureViews() {
-        localVideoTextureView = findViewById(R.id.videoView1);
+        localVideoTextureView = findViewById(R.id.local_participant_video_texture_view);
         localVideoTextureView.setMirror(true);
 
         videoViewMap.clear();
@@ -443,17 +443,17 @@ public class MultiPartyActivity extends AppCompatActivity {
 
         availableVideoTextureViews.clear();
 
-        VideoTextureView videoTextureView4 = findViewById(R.id.videoView4);
-        videoTextureView4.setVisibility(GONE);
-        availableVideoTextureViews.push(videoTextureView4);
+        VideoTextureView remoteParticipantVideoTextureView3 = findViewById(R.id.remote_participant_video_texture_view3);
+        remoteParticipantVideoTextureView3.setVisibility(GONE);
+        availableVideoTextureViews.push(remoteParticipantVideoTextureView3);
 
-        VideoTextureView videoTextureView3 = findViewById(R.id.videoView3);
-        videoTextureView3.setVisibility(GONE);
-        availableVideoTextureViews.push(videoTextureView3);
+        VideoTextureView remoteParticipantVideoTextureView2 = findViewById(R.id.remote_participant_video_texture_view2);
+        remoteParticipantVideoTextureView2.setVisibility(GONE);
+        availableVideoTextureViews.push(remoteParticipantVideoTextureView2);
 
-        VideoTextureView videoTextureView2 = findViewById(R.id.videoView2);
-        videoTextureView2.setVisibility(GONE);
-        availableVideoTextureViews.push(videoTextureView2);
+        VideoTextureView remoteParticipantVideoTextureView1 = findViewById(R.id.remote_participant_video_texture_view1);
+        remoteParticipantVideoTextureView1.setVisibility(GONE);
+        availableVideoTextureViews.push(remoteParticipantVideoTextureView1);
     }
 
     private VideoTextureView getAvailableVideoTextureView() {
