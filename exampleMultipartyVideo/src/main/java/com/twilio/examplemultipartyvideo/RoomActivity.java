@@ -62,8 +62,10 @@ import com.twilio.video.VideoView;
 import com.twilio.video.Vp8Codec;
 import com.twilio.video.Vp9Codec;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -139,12 +141,12 @@ public class RoomActivity extends AppCompatActivity {
 
     private int previousAudioMode;
     private boolean previousMicrophoneMute;
-    private VideoRenderer localVideoView;
     private boolean disconnectedFromOnDestroy;
     private boolean isSpeakerPhoneEnabled = true;
 
-    VideoTextureView[] videoViews = new VideoTextureView[MAX_PARTICIPANTS];
-    Map<Participant, VideoTextureView> videoViewMap = new HashMap<>();
+    private List<VideoTextureView> availableVideoTextureViews = new ArrayList<>();
+    private Map<Participant, VideoTextureView> videoViewMap = new HashMap<>();
+    private VideoTextureView localVideoTextureView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -152,18 +154,16 @@ public class RoomActivity extends AppCompatActivity {
         setContentView(R.layout.activity_video);
 
         videoStatusTextView = findViewById(R.id.videoStatusText);
-        videoViews[LOCAL_PARTICIPANT_VIDEO] = findViewById(R.id.videoView1);
-        videoViews[LOCAL_PARTICIPANT_VIDEO].setMirror(true);
-        videoViewMap.put(localParticipant, videoViews[LOCAL_PARTICIPANT_VIDEO]);
 
-        videoViews[REMOTE_PARTICIPANT_VIDEO_1] = findViewById(R.id.videoView2);
-        videoViews[REMOTE_PARTICIPANT_VIDEO_1].setMirror(false);
+        reconnectingProgressBar = findViewById(R.id.progressBar);
 
-        videoViews[REMOTE_PARTICIPANT_VIDEO_2] = findViewById(R.id.videoView3);
-        videoViews[REMOTE_PARTICIPANT_VIDEO_2].setMirror(false);
+        localVideoTextureView = findViewById(R.id.videoView1);
+        localVideoTextureView.setMirror(true);
+        videoViewMap.put(localParticipant, localVideoTextureView);
 
-        videoViews[REMOTE_PARTICIPANT_VIDEO_3] = findViewById(R.id.videoView4);
-        videoViews[REMOTE_PARTICIPANT_VIDEO_3].setMirror(false);
+        availableVideoTextureViews.add(findViewById(R.id.videoView2));
+        availableVideoTextureViews.add(findViewById(R.id.videoView3));
+        availableVideoTextureViews.add(findViewById(R.id.videoView4));
 
         connectActionFab = findViewById(R.id.connect_action_fab);
         switchCameraActionFab = findViewById(R.id.switch_camera_action_fab);
@@ -242,7 +242,7 @@ public class RoomActivity extends AppCompatActivity {
                     true,
                     cameraCapturerCompat,
                     LOCAL_VIDEO_TRACK_NAME);
-            localVideoTrack.addRenderer(videoViews[LOCAL_PARTICIPANT_VIDEO]);
+            localVideoTrack.addRenderer(localVideoTextureView);
 
             /*
              * If connected to a Room then share the local video track.
@@ -351,9 +351,7 @@ public class RoomActivity extends AppCompatActivity {
                 true,
                 cameraCapturerCompat,
                 LOCAL_VIDEO_TRACK_NAME);
-        VideoTextureView localVideoView = videoViews[LOCAL_PARTICIPANT_VIDEO];
-        localVideoView.setMirror(true);
-        localVideoTrack.addRenderer(localVideoView);
+        localVideoTrack.addRenderer(localVideoTextureView);
     }
 
     private CameraSource getAvailableCameraSource() {
@@ -494,13 +492,12 @@ public class RoomActivity extends AppCompatActivity {
         connectDialog.show();
     }
 
-    private int getNextParticipantIndex(){
-        for(int i = REMOTE_PARTICIPANT_VIDEO_1; i <= REMOTE_PARTICIPANT_VIDEO_3; i++){
-            if(videoViews[i].getTag() == null){
-                return i;
-            }
+    private VideoTextureView getAvailableVideoTextureView() {
+        if(availableVideoTextureViews.size() == 0){
+            return null;
         }
-        return -1;
+        // Just remove the first element
+        return availableVideoTextureViews.remove(0);
     }
 
     /*
@@ -535,12 +532,11 @@ public class RoomActivity extends AppCompatActivity {
      * Set primary view as renderer for participant video track
      */
     private void addRemoteParticipantVideo(RemoteParticipant remoteParticipant, VideoTrack videoTrack) {
-        int index = getNextParticipantIndex();
-        if(index == -1){
+        VideoTextureView videoTextureView = getAvailableVideoTextureView();
+        if(videoTextureView == null){
             Log.w(TAG, String.format("This example app doesn't support more than %d RemoteParticipants", MAX_PARTICIPANTS));
             return;
         }
-        VideoTextureView videoTextureView = videoViews[index];
         videoTextureView.setTag(videoTrack);
         videoTrack.addRenderer(videoTextureView);
         videoViewMap.put(remoteParticipant, videoTextureView);
@@ -577,6 +573,7 @@ public class RoomActivity extends AppCompatActivity {
         videoTrack.removeRenderer(videoTextureView);
         videoTextureView.setTag(null);
         videoViewMap.remove(remoteParticipant);
+        availableVideoTextureViews.add(videoTextureView);
     }
 
     /*
