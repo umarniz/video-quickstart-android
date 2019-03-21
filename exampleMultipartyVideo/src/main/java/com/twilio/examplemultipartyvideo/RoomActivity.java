@@ -555,7 +555,6 @@ public class RoomActivity extends AppCompatActivity {
 
                 for (RemoteParticipant remoteParticipant : room.getRemoteParticipants()) {
                     addRemoteParticipant(remoteParticipant);
-                    break;
                 }
             }
 
