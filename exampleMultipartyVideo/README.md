@@ -2,7 +2,7 @@
 
 The project demonstrates how to use Twilio's Programmable Video SDK for multi-party conferencing with up to 4 Participants in a Group Room.
 
-### Breaking down RoomActivity.java
+### Breaking down MultiPartyActivity.java
 
 `MultiPartyActivity.java` comprises the main functionality of the app and handles the following:
 
