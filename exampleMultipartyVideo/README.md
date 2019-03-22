@@ -22,6 +22,8 @@ You will need to provide a hardcoded token, or token server URL in `local.proper
 
 This example requires Android Studio 3.0 or higher, as well as a device or simulator running Android 4.2 (JELLY BEAN) or above.
 
+<kbd><img width="360px" src="../images/quickstart/multi-party-home-screen.png"/></kbd>
+
 ### Known Issues
 
 **1. Defaults are inefficient for Peer-to-Peer**
