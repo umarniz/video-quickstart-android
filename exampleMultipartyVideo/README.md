@@ -4,7 +4,7 @@ The project demonstrates how to use Twilio's Programmable Video SDK for multi-pa
 
 ### Breaking down RoomActivity.java
 
-`RoomActivity.java` comprises the main functionality of the app and handles the follow:
+`MultiPartyActivity.java` comprises the main functionality of the app and handles the following:
 
 1. Configuring local audio & video Tracks.
 2. Connecting to the Room.
