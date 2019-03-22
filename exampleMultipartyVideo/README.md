@@ -18,6 +18,8 @@ See the master [README](https://github.com/twilio/video-quickstart-android/blob/
 
 You will need to provide a hardcoded token, or token server URL in `local.properties`. Please note that this example is designed to work in a Group Room, including the usage of [VP8 Simulcast](https://www.twilio.com/docs/video/tutorials/working-with-vp8-simulcast). You can create Group Rooms using the [REST API](https://www.twilio.com/docs/video/api/rooms-resource), or by selecting them as the default type in the [console](https://www.twilio.com/console/video/configure).
 
+<kbd><img src="../images/quickstart/console-room-topology-group.png"/></kbd>
+
 This example requires Android Studio 3.0 or higher, as well as a device or simulator running Android 4.2 (JELLY BEAN) or above.
 
 ### Known Issues
