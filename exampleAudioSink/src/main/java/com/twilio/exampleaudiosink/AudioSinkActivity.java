@@ -3,7 +3,6 @@ package com.twilio.exampleaudiosink;
 import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.media.AudioAttributes;
@@ -11,7 +10,6 @@ import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -31,9 +29,7 @@ import com.twilio.exampleaudiosink.dialog.Dialog;
 import com.twilio.video.AudioSink;
 import com.twilio.video.CameraCapturer;
 import com.twilio.video.ConnectOptions;
-import com.twilio.video.EncodingParameters;
 import com.twilio.video.LocalAudioTrack;
-import com.twilio.video.LocalParticipant;
 import com.twilio.video.OpusCodec;
 import com.twilio.video.RemoteParticipant;
 import com.twilio.video.Room;
@@ -75,16 +71,6 @@ public class AudioSinkActivity extends AppCompatActivity {
      * A Room represents communication between a local participant and one or more participants.
      */
     private Room room;
-    private LocalParticipant localParticipant;
-
-    /*
-     * Encoding parameters represent the sender side bandwidth constraints.
-     */
-    private EncodingParameters encodingParameters;
-    /*
-     * Android shared preferences used for settings
-     */
-    private SharedPreferences preferences;
 
     /*
      * Android application UI elements
@@ -122,11 +108,6 @@ public class AudioSinkActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_audio_sink);
-
-        /*
-         * Get shared preferences to read settings
-         */
-        preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         /*
          * Enable changing the volume using the up/down keys during a conversation
@@ -275,11 +256,6 @@ public class AudioSinkActivity extends AppCompatActivity {
          */
         connectOptionsBuilder.preferAudioCodecs(Collections.singletonList(new OpusCodec()));
 
-        /*
-         * Set the sender side encoding parameters.
-         */
-        connectOptionsBuilder.encodingParameters(encodingParameters);
-
         room = Video.connect(this, connectOptionsBuilder.build(), roomListener());
         setDisconnectAction();
     }
@@ -386,7 +362,6 @@ public class AudioSinkActivity extends AppCompatActivity {
         return new Room.Listener() {
             @Override
             public void onConnected(@NonNull Room room) {
-                localParticipant = room.getLocalParticipant();
                 audioSinkStatusText.setText(String.format("Connected to %s", room.getName()));
                 setTitle(room.getName());
                 if (hasNecessaryParticipants(room)) {
@@ -420,7 +395,6 @@ public class AudioSinkActivity extends AppCompatActivity {
 
             @Override
             public void onDisconnected(@NonNull Room room, TwilioException e) {
-                localParticipant = null;
                 audioSinkStatusText.setText(String.format("Disconnected from %s", room.getName()));
                 AudioSinkActivity.this.room = null;
                 enableAudioSinkButton(false);
