@@ -23,4 +23,5 @@
     <string name="status_capture_ready">AudioSink can be attached to the RemotePartipant, press the record button below to begin.</string>
     <string name="status_capturing">Now recording the RemoteParticipant\'s audio. Press the record button below to finish the recording</string>
     <string name="status_finished_capturing">Finished recording audio. Press the play button to hear what was recorded</string>
+    <string name="unsupported_participant_count_exception_message">This example only supports %d participants</string>
 </resources>

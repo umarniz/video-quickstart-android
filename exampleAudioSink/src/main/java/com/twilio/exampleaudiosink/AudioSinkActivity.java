@@ -49,7 +49,6 @@ import java.util.Collections;
 import java.util.UUID;
 
 public class AudioSinkActivity extends AppCompatActivity {
-
     private static final int MAX_PARTICIPANTS = 2;
     private static final int CAMERA_MIC_PERMISSION_REQUEST_CODE = 5;
     private static final String TAG = "AudioSinkActivity";
@@ -517,6 +516,7 @@ public class AudioSinkActivity extends AppCompatActivity {
 
 
     public boolean hasNecessaryParticipants(@NonNull Room room) {
+        if(room.getRemoteParticipants().size() > 1) throw new RuntimeException(String.format(getString(R.string.unsupported_participant_count_exception_message), MAX_PARTICIPANTS));
         return room.getRemoteParticipants().size() > 0;
     }
 
