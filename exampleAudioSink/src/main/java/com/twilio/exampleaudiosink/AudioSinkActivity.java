@@ -28,7 +28,6 @@ import android.widget.Toast;
 
 import com.koushikdutta.ion.Ion;
 import com.twilio.exampleaudiosink.dialog.Dialog;
-import com.twilio.video.AudioCodec;
 import com.twilio.video.AudioSink;
 import com.twilio.video.CameraCapturer;
 import com.twilio.video.ConnectOptions;
@@ -40,8 +39,6 @@ import com.twilio.video.RemoteParticipant;
 import com.twilio.video.Room;
 import com.twilio.video.TwilioException;
 import com.twilio.video.Video;
-import com.twilio.video.VideoCodec;
-import com.twilio.video.Vp8Codec;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -161,16 +158,7 @@ public class AudioSinkActivity extends AppCompatActivity {
         /*
          * Set the initial state of the UI
          */
-        intializeUI();
-    }
-
-
-    public AudioCodec getAudioCodec() {
-        return new OpusCodec();
-    }
-
-    public VideoCodec getVideoCodec() {
-        return new Vp8Codec();
+        initializeUI();
     }
 
     @Override
@@ -247,26 +235,6 @@ public class AudioSinkActivity extends AppCompatActivity {
     private void initializeHelpers() {
         wavFileHelper = new WavFileHelper(AudioSinkActivity.this);
         mediaPlayerHelper = new MediaPlayerHelper();
-    }
-
-    private void intializeUI() {
-        audioSinkStatusText = findViewById(R.id.status_text);
-        participantAvatarImageView = findViewById(R.id.participant_avatar);
-
-        toggleAudioSinkButton = findViewById(R.id.toggle_sink);
-        toggleAudioSinkButton.setOnClickListener(audioSinkClickListener());
-        toggleAudioSinkButton.setEnabled(room != null && room.getRemoteParticipants().size() > 0);
-        toggleAudioSinkButton.setColorFilter(Color.WHITE);
-
-        togglePlayAudioButton = findViewById(R.id.toggle_play_file);
-        togglePlayAudioButton.setEnabled(wavFileHelper.doesFileExist());
-        togglePlayAudioButton.setOnClickListener(playAudioClickListener());
-
-        connectActionFab = findViewById(R.id.connect_action_fab);
-        connectActionFab.setImageDrawable(ContextCompat.getDrawable(this,
-                R.drawable.ic_video_call_white_24dp));
-        connectActionFab.show();
-        connectActionFab.setOnClickListener(connectActionClickListener());
     }
 
     private void setAccessToken() {
@@ -447,7 +415,7 @@ public class AudioSinkActivity extends AppCompatActivity {
             public void onConnectFailure(@NonNull Room room, @NonNull TwilioException e) {
                 audioSinkStatusText.setText("Failed to connect");
                 configureAudio(false);
-                intializeUI();
+                initializeUI();
             }
 
             @Override
@@ -464,7 +432,7 @@ public class AudioSinkActivity extends AppCompatActivity {
                 // Only reinitialize the UI if disconnect was not called from onDestroy()
                 if (!disconnectedFromOnDestroy) {
                     configureAudio(false);
-                    intializeUI();
+                    initializeUI();
                 }
             }
 
@@ -514,17 +482,41 @@ public class AudioSinkActivity extends AppCompatActivity {
         };
     }
 
-
     public boolean hasNecessaryParticipants(@NonNull Room room) {
-        if(room.getRemoteParticipants().size() > 1) throw new RuntimeException(String.format(getString(R.string.unsupported_participant_count_exception_message), MAX_PARTICIPANTS));
+        if (room.getRemoteParticipants().size() > 1)
+            throw new RuntimeException(String.format(getString(R.string.unsupported_participant_count_exception_message), MAX_PARTICIPANTS));
         return room.getRemoteParticipants().size() > 0;
     }
 
+    private void attachSink() {
+        room.getRemoteParticipants().get(0).getRemoteAudioTracks().get(0).getRemoteAudioTrack().addSink(audioSink);
+        toggleAudioSinkButton.setColorFilter(Color.GRAY);
+    }
 
+    private void detachSink() {
+        room.getRemoteParticipants().get(0).getRemoteAudioTracks().get(0).getRemoteAudioTrack().removeSink(audioSink);
+        toggleAudioSinkButton.setColorFilter(Color.WHITE);
+    }
 
-    /*
-     *   UI helper methods
-     */
+    private void initializeUI() {
+        audioSinkStatusText = findViewById(R.id.status_text);
+        participantAvatarImageView = findViewById(R.id.participant_avatar);
+
+        toggleAudioSinkButton = findViewById(R.id.toggle_sink);
+        toggleAudioSinkButton.setOnClickListener(audioSinkClickListener());
+        toggleAudioSinkButton.setEnabled(room != null && room.getRemoteParticipants().size() > 0);
+        toggleAudioSinkButton.setColorFilter(Color.WHITE);
+
+        togglePlayAudioButton = findViewById(R.id.toggle_play_file);
+        togglePlayAudioButton.setEnabled(wavFileHelper.doesFileExist());
+        togglePlayAudioButton.setOnClickListener(playAudioClickListener());
+
+        connectActionFab = findViewById(R.id.connect_action_fab);
+        connectActionFab.setImageDrawable(ContextCompat.getDrawable(this,
+                R.drawable.ic_video_call_white_24dp));
+        connectActionFab.show();
+        connectActionFab.setOnClickListener(connectActionClickListener());
+    }
 
     /*
      * Creates a connect UI dialog
@@ -548,7 +540,6 @@ public class AudioSinkActivity extends AppCompatActivity {
         connectActionFab.setOnClickListener(disconnectClickListener());
     }
 
-
     public void showRemoteParticipantAvatar(boolean isVisible) {
         if (isVisible) {
             participantAvatarImageView.setVisibility(View.VISIBLE);
@@ -563,16 +554,6 @@ public class AudioSinkActivity extends AppCompatActivity {
 
     private void enablePlayFileButton(boolean isEnabled) {
         togglePlayAudioButton.setEnabled(isEnabled);
-    }
-
-    private void attachSink() {
-        room.getRemoteParticipants().get(0).getRemoteAudioTracks().get(0).getRemoteAudioTrack().addSink(audioSink);
-        toggleAudioSinkButton.setColorFilter(Color.GRAY);
-    }
-
-    private void detachSink() {
-        room.getRemoteParticipants().get(0).getRemoteAudioTracks().get(0).getRemoteAudioTrack().removeSink(audioSink);
-        toggleAudioSinkButton.setColorFilter(Color.WHITE);
     }
 
     private View.OnClickListener audioSinkClickListener() {
@@ -636,7 +617,7 @@ public class AudioSinkActivity extends AppCompatActivity {
             if (room != null) {
                 room.disconnect();
             }
-            intializeUI();
+            initializeUI();
         };
     }
 
@@ -646,7 +627,7 @@ public class AudioSinkActivity extends AppCompatActivity {
 
     private DialogInterface.OnClickListener cancelConnectDialogClickListener() {
         return (dialog, which) -> {
-            intializeUI();
+            initializeUI();
             connectDialog.dismiss();
         };
     }
