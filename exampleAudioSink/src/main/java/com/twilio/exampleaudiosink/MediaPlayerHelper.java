@@ -9,7 +9,7 @@ class MediaPlayerHelper {
 
     private MediaPlayer player;
     private boolean isReleased = false;
-    private MediaPlayerListener listener;
+
     MediaPlayerHelper() {
     }
 
@@ -20,32 +20,28 @@ class MediaPlayerHelper {
         return player.isPlaying();
     }
 
-    void playFile(String path, final MediaPlayerListener listener) throws IOException {
-        player = new MediaPlayer();
-        player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        player.setDataSource(path);
-        player.prepare();
-        player.start();
-        player.setOnCompletionListener(mp -> {
+    void playFile(String path, final MediaPlayer.OnCompletionListener listener) throws IOException {
+        if (!isReleased && player != null) {
             player.release();
             player = null;
             isReleased = true;
-            listener.onTrackFinished();
-        });
+        }
+        player = new MediaPlayer();
+        player.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        player.setDataSource(path);
+        player.setOnCompletionListener(listener);
+        player.prepare();
+        player.start();
 
         isReleased = false;
     }
 
-    public boolean stopPlaying() {
+    boolean stopPlaying() {
         if (player == null) return false;
         if (!player.isPlaying()) return false;
         player.stop();
         player.release();
         isReleased = true;
         return true;
-    }
-
-    interface MediaPlayerListener {
-        void onTrackFinished();
     }
 }

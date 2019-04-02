@@ -29,7 +29,6 @@ import com.twilio.exampleaudiosink.dialog.Dialog;
 import com.twilio.video.AudioSink;
 import com.twilio.video.ConnectOptions;
 import com.twilio.video.LocalAudioTrack;
-import com.twilio.video.OpusCodec;
 import com.twilio.video.RemoteParticipant;
 import com.twilio.video.Room;
 import com.twilio.video.TwilioException;
@@ -528,7 +527,7 @@ public class AudioSinkActivity extends AppCompatActivity {
                     return;
                 }
                 try {
-                    mediaPlayerHelper.playFile(wavFileHelper.getFullFilePath(), () -> {
+                    mediaPlayerHelper.playFile(wavFileHelper.getFullFilePath(), mp -> {
                         if (!mediaPlayerHelper.isPlaying()) {
                             togglePlayAudioButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
                         }
