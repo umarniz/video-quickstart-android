@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -522,7 +523,7 @@ public class AudioSinkActivity extends AppCompatActivity {
                 togglePlayAudioButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
             } else {
                 if (!wavFileHelper.doesFileExist()) {
-                    Toast.makeText(AudioSinkActivity.this, "Couldn't find AudioSink recording", Toast.LENGTH_SHORT).show();
+                    Snackbar.make(connectActionFab, "Couldn't find AudioSink Recording", Snackbar.LENGTH_SHORT).show();
                     togglePlayAudioButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
                     return;
                 }
