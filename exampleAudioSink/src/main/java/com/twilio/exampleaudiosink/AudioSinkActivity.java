@@ -487,7 +487,8 @@ public class AudioSinkActivity extends AppCompatActivity {
 
         connectActionFab = findViewById(R.id.connect_action_fab);
         connectActionFab.setImageDrawable(ContextCompat.getDrawable(this,
-                R.drawable.ic_video_call_white_24dp));
+                android.R.drawable.sym_call_outgoing));
+
         connectActionFab.show();
         connectActionFab.setOnClickListener(connectActionClickListener());
     }
