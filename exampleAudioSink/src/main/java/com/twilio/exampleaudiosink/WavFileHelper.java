@@ -14,8 +14,8 @@ import java.nio.ByteOrder;
 public class WavFileHelper {
 
     private static final String fileName = "/audio_sink.wav";
-    private static boolean didWriteWavHeader;
-    private static boolean didCompleteWavHeader;
+    private boolean didWriteWavHeader;
+    private boolean didCompleteWavHeader;
     private final String fullFilePath;
     private FileOutputStream fileOutputStream;
     private File outputFile;
