@@ -146,7 +146,6 @@ public class AudioSinkActivity extends AppCompatActivity {
          * Route audio through cached value.
          */
         audioManager.setSpeakerphoneOn(isSpeakerPhoneEnabled);
-
     }
 
     @Override
