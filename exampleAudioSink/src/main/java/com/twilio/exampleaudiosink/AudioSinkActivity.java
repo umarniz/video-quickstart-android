@@ -153,7 +153,6 @@ public class AudioSinkActivity extends AppCompatActivity {
         super.onPause();
     }
 
-
     @Override
     protected void onDestroy() {
         /*
