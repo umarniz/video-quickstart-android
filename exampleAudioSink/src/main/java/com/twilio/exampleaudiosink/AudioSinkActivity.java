@@ -79,7 +79,6 @@ public class AudioSinkActivity extends AppCompatActivity {
 
     private FloatingActionButton connectActionFab;
 
-    private ImageView participantAvatarImageView;
     private ImageButton toggleAudioSinkButton, togglePlayAudioButton;
     private TextView audioSinkStatusText;
     private AlertDialog connectDialog;
@@ -366,11 +365,9 @@ public class AudioSinkActivity extends AppCompatActivity {
                 setTitle(room.getName());
                 if (hasNecessaryParticipants(room)) {
                     audioSinkStatusText.setText(getString(R.string.status_capture_ready));
-                    showRemoteParticipantAvatar(true);
                     enableAudioSinkButton(true);
                 } else {
                     audioSinkStatusText.setText(getString(R.string.status_two_particpants_needed));
-                    showRemoteParticipantAvatar(false);
                     enableAudioSinkButton(false);
                 }
             }
@@ -383,7 +380,6 @@ public class AudioSinkActivity extends AppCompatActivity {
             @Override
             public void onReconnected(@NonNull Room room) {
                 audioSinkStatusText.setText(String.format("Connected to %s", room.getName()));
-                showRemoteParticipantAvatar(hasNecessaryParticipants(room));
             }
 
             @Override
@@ -398,7 +394,6 @@ public class AudioSinkActivity extends AppCompatActivity {
                 audioSinkStatusText.setText(String.format("Disconnected from %s", room.getName()));
                 AudioSinkActivity.this.room = null;
                 enableAudioSinkButton(false);
-                showRemoteParticipantAvatar(false);
                 if (wavFileHelper.isFileWriteInProgress()) {
                     finish();
                     enablePlayFileButton(wavFileHelper.doesFileExist() && !wavFileHelper.isFileWriteInProgress());
@@ -415,7 +410,6 @@ public class AudioSinkActivity extends AppCompatActivity {
                 if (hasNecessaryParticipants(room)) {
                     audioSinkStatusText.setText(getString(R.string.status_capture_ready));
                     enableAudioSinkButton(true);
-                    showRemoteParticipantAvatar(true);
                 }
             }
 
@@ -424,7 +418,6 @@ public class AudioSinkActivity extends AppCompatActivity {
                 if (!hasNecessaryParticipants(room)) {
                     audioSinkStatusText.setText(getString(R.string.status_two_particpants_needed));
                     enableAudioSinkButton(false);
-                    showRemoteParticipantAvatar(false);
                     if (wavFileHelper.isFileWriteInProgress()) {
                         try {
                             wavFileHelper.finish();
@@ -474,7 +467,6 @@ public class AudioSinkActivity extends AppCompatActivity {
 
     private void initializeUI() {
         audioSinkStatusText = findViewById(R.id.status_text);
-        participantAvatarImageView = findViewById(R.id.participant_avatar);
 
         toggleAudioSinkButton = findViewById(R.id.toggle_sink);
         toggleAudioSinkButton.setOnClickListener(audioSinkClickListener());
@@ -513,14 +505,6 @@ public class AudioSinkActivity extends AppCompatActivity {
                 R.drawable.ic_call_end_white_24px));
         connectActionFab.show();
         connectActionFab.setOnClickListener(disconnectClickListener());
-    }
-
-    public void showRemoteParticipantAvatar(boolean isVisible) {
-        if (isVisible) {
-            participantAvatarImageView.setVisibility(View.VISIBLE);
-        } else {
-            participantAvatarImageView.setVisibility(View.GONE);
-        }
     }
 
     private void enableAudioSinkButton(boolean isEnabled) {
