@@ -20,14 +20,12 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.koushikdutta.ion.Ion;
 import com.twilio.exampleaudiosink.dialog.Dialog;
 import com.twilio.video.AudioSink;
-import com.twilio.video.CameraCapturer;
 import com.twilio.video.ConnectOptions;
 import com.twilio.video.LocalAudioTrack;
 import com.twilio.video.OpusCodec;
@@ -43,7 +41,7 @@ import java.util.UUID;
 
 public class AudioSinkActivity extends AppCompatActivity {
     private static final int MAX_PARTICIPANTS = 2;
-    private static final int CAMERA_MIC_PERMISSION_REQUEST_CODE = 5;
+    private static final int MIC_PERMISSION_REQUEST_CODE = 5;
     private static final String TAG = "AudioSinkActivity";
 
     /*
@@ -119,12 +117,12 @@ public class AudioSinkActivity extends AppCompatActivity {
         audioManager.setSpeakerphoneOn(isSpeakerPhoneEnabled);
 
         /*
-         * Check camera and microphone permissions. Needed in Android M.
+         * Check microphone permissions. Needed in Android M.
          */
-        if (!checkPermissionForCameraAndMicrophone()) {
-            requestPermissionForCameraAndMicrophone();
+        if (!checkPermissionForMicrophone()) {
+            requestPermissionForMicrophone();
         } else {
-            createAudioAndVideoTracks();
+            createAudioTrack();
             setAccessToken();
         }
 
@@ -193,15 +191,15 @@ public class AudioSinkActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
-        if (requestCode == CAMERA_MIC_PERMISSION_REQUEST_CODE) {
-            boolean cameraAndMicPermissionGranted = true;
+        if (requestCode == MIC_PERMISSION_REQUEST_CODE) {
+            boolean micPermissionGranted = true;
 
             for (int grantResult : grantResults) {
-                cameraAndMicPermissionGranted &= grantResult == PackageManager.PERMISSION_GRANTED;
+                micPermissionGranted &= grantResult == PackageManager.PERMISSION_GRANTED;
             }
 
-            if (cameraAndMicPermissionGranted) {
-                createAudioAndVideoTracks();
+            if (micPermissionGranted) {
+                createAudioTrack();
                 setAccessToken();
             } else {
                 Toast.makeText(this,
@@ -274,17 +272,14 @@ public class AudioSinkActivity extends AppCompatActivity {
                 });
     }
 
-    private boolean checkPermissionForCameraAndMicrophone() {
-        int resultCamera = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
+    private boolean checkPermissionForMicrophone() {
         int resultMic = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
-        return resultCamera == PackageManager.PERMISSION_GRANTED &&
-                resultMic == PackageManager.PERMISSION_GRANTED;
+        return resultMic == PackageManager.PERMISSION_GRANTED;
     }
 
-    private void requestPermissionForCameraAndMicrophone() {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA) ||
-                ActivityCompat.shouldShowRequestPermissionRationale(this,
-                        Manifest.permission.RECORD_AUDIO)) {
+    private void requestPermissionForMicrophone() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.RECORD_AUDIO)) {
             Toast.makeText(this,
                     R.string.permissions_needed,
                     Toast.LENGTH_LONG).show();
@@ -292,20 +287,14 @@ public class AudioSinkActivity extends AppCompatActivity {
         } else {
             ActivityCompat.requestPermissions(
                     this,
-                    new String[]{Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO},
-                    CAMERA_MIC_PERMISSION_REQUEST_CODE);
+                    new String[]{Manifest.permission.RECORD_AUDIO},
+                    MIC_PERMISSION_REQUEST_CODE);
         }
     }
 
-    private void createAudioAndVideoTracks() {
+    private void createAudioTrack() {
         // Share your microphone
         localAudioTrack = LocalAudioTrack.create(this, true, LOCAL_AUDIO_TRACK_NAME);
-    }
-
-    private CameraCapturer.CameraSource getAvailableCameraSource() {
-        return (CameraCapturer.isSourceAvailable(CameraCapturer.CameraSource.FRONT_CAMERA)) ?
-                (CameraCapturer.CameraSource.FRONT_CAMERA) :
-                (CameraCapturer.CameraSource.BACK_CAMERA);
     }
 
     private void configureAudio(boolean enable) {
