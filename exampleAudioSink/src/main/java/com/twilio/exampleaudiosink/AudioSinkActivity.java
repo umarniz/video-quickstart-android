@@ -245,11 +245,6 @@ public class AudioSinkActivity extends AppCompatActivity {
                     .audioTracks(Collections.singletonList(localAudioTrack));
         }
 
-        /*
-         * Set the preferred audio codec for media.
-         */
-        connectOptionsBuilder.preferAudioCodecs(Collections.singletonList(new OpusCodec()));
-
         room = Video.connect(this, connectOptionsBuilder.build(), roomListener());
         setDisconnectAction();
     }
