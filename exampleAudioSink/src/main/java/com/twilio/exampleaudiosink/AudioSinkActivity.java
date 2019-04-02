@@ -165,8 +165,8 @@ public class AudioSinkActivity extends AppCompatActivity {
         }
 
         /*
-         * Release the local audio and video tracks ensuring any memory allocated to audio
-         * or video is freed.
+         * Release the local audio track ensuring any memory allocated to audio
+         * is freed.
          */
         if (localAudioTrack != null) {
             localAudioTrack.release();
@@ -238,7 +238,7 @@ public class AudioSinkActivity extends AppCompatActivity {
                 .roomName(roomName);
 
         /*
-         * Add local audio and video tracks to connect options to share with participants.
+         * Add local audio track to connect options to share with participants.
          */
         if (localAudioTrack != null) {
             connectOptionsBuilder
@@ -246,7 +246,7 @@ public class AudioSinkActivity extends AppCompatActivity {
         }
 
         /*
-         * Set the preferred audio and video codec for media.
+         * Set the preferred audio codec for media.
          */
         connectOptionsBuilder.preferAudioCodecs(Collections.singletonList(new OpusCodec()));
 
