@@ -10,9 +10,6 @@ class MediaPlayerHelper {
     private MediaPlayer player;
     private boolean isReleased = false;
 
-    MediaPlayerHelper() {
-    }
-
     boolean isPlaying() {
         if (player == null || isReleased) {
             return false;
