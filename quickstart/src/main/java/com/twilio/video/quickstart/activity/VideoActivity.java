@@ -148,6 +148,7 @@ public class VideoActivity extends AppCompatActivity {
     private VideoRenderer localVideoView;
     private boolean disconnectedFromOnDestroy;
     private boolean isSpeakerPhoneEnabled = true;
+    private boolean enableAutomaticSubscription;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -258,7 +259,7 @@ public class VideoActivity extends AppCompatActivity {
                 SettingsActivity.PREF_AUDIO_CODEC_DEFAULT);
         videoCodec = getVideoCodecPreference(SettingsActivity.PREF_VIDEO_CODEC,
                 SettingsActivity.PREF_VIDEO_CODEC_DEFAULT);
-
+        enableAutomaticSubscription = getAutomaticSubscriptionPreference(SettingsActivity.PREF_ENABLE_AUTOMATIC_SUBSCRIPTION,  SettingsActivity.PREF_ENABLE_AUTOMATIC_SUBSCRIPTION_DEFAULT);
         /*
          * Get latest encoding parameters
          */
@@ -453,6 +454,15 @@ public class VideoActivity extends AppCompatActivity {
          */
         connectOptionsBuilder.encodingParameters(encodingParameters);
 
+        /*
+         * Toggles automatic track subscription. If set to false, the LocalParticipant will receive
+         * notifications of track publish events, but will not automatically subscribe to them. If
+         * set to true, the LocalParticipant will automatically subscribe to tracks as they are
+         * published. If unset, the default is true. Note: This feature is only available for Group
+         * Rooms. Toggling the flag in a P2P room does not modify subscription behavior.
+         */
+        connectOptionsBuilder.enableAutomaticSubscription(enableAutomaticSubscription);
+
         room = Video.connect(this, connectOptionsBuilder.build(), roomListener());
         setDisconnectAction();
     }
@@ -513,6 +523,10 @@ public class VideoActivity extends AppCompatActivity {
             default:
                 return new Vp8Codec();
         }
+    }
+
+    private boolean getAutomaticSubscriptionPreference(String key, boolean defaultValue) {
+        return preferences.getBoolean(key, defaultValue);
     }
 
     private EncodingParameters getEncodingParameters() {

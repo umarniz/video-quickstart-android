@@ -1,5 +1,13 @@
 <android.support.v7.preference.PreferenceScreen
     xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <android.support.v7.preference.PreferenceCategory
+        android:title="General">
+        <android.support.v7.preference.CheckBoxPreference
+            android:key="enable_automatic_subscription"
+            android:title="Enable Automatic Track Subscription"
+            android:defaultValue="true"/>
+    </android.support.v7.preference.PreferenceCategory>
     <android.support.v7.preference.PreferenceCategory
         android:title="@string/codec_title">
         <android.support.v7.preference.ListPreference
