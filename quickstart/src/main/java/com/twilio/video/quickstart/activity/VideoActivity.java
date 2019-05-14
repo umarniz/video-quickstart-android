@@ -259,7 +259,8 @@ public class VideoActivity extends AppCompatActivity {
                 SettingsActivity.PREF_AUDIO_CODEC_DEFAULT);
         videoCodec = getVideoCodecPreference(SettingsActivity.PREF_VIDEO_CODEC,
                 SettingsActivity.PREF_VIDEO_CODEC_DEFAULT);
-        enableAutomaticSubscription = getAutomaticSubscriptionPreference(SettingsActivity.PREF_ENABLE_AUTOMATIC_SUBSCRIPTION, SettingsActivity.PREF_ENABLE_AUTOMATIC_SUBSCRIPTION_DEFAULT);
+        enableAutomaticSubscription = getAutomaticSubscriptionPreference(SettingsActivity.PREF_ENABLE_AUTOMATIC_SUBSCRIPTION,
+                SettingsActivity.PREF_ENABLE_AUTOMATIC_SUBSCRIPTION_DEFAULT);
         /*
          * Get latest encoding parameters
          */
