@@ -10,13 +10,13 @@ import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.os.Build
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.design.widget.Snackbar
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -86,6 +86,11 @@ class VideoActivity : AppCompatActivity() {
                 Vp9Codec.NAME -> Vp9Codec()
                 else -> Vp8Codec()
             }
+        }
+
+    private val enableAutomaticSubscription: Boolean
+        get() {
+            return sharedPreferences.getBoolean(SettingsActivity.PREF_ENABLE_AUTOMATIC_SUBSCRIPTION, SettingsActivity.PREF_ENABLE_AUTOMATIC_SUBCRIPTION_DEFAULT)
         }
 
     /*
@@ -295,8 +300,8 @@ class VideoActivity : AppCompatActivity() {
         }
 
         override fun onDataTrackSubscriptionFailed(remoteParticipant: RemoteParticipant,
-                                                    remoteDataTrackPublication: RemoteDataTrackPublication,
-                                                    twilioException: TwilioException) {
+                                                   remoteDataTrackPublication: RemoteDataTrackPublication,
+                                                   twilioException: TwilioException) {
             Log.i(TAG, "onDataTrackSubscriptionFailed: " +
                     "[RemoteParticipant: identity=${remoteParticipant.identity}], " +
                     "[RemoteDataTrackPublication: sid=${remoteDataTrackPublication.trackSid}, " +
@@ -621,6 +626,15 @@ class VideoActivity : AppCompatActivity() {
          * Set the sender side encoding parameters.
          */
         connectOptionsBuilder.encodingParameters(encodingParameters)
+
+        /*
+         * Toggles automatic track subscription. If set to false, the LocalParticipant will receive
+         * notifications of track publish events, but will not automatically subscribe to them. If
+         * set to true, the LocalParticipant will automatically subscribe to tracks as they are
+         * published. If unset, the default is true. Note: This feature is only available for Group
+         * Rooms. Toggling the flag in a P2P room does not modify subscription behavior.
+         */
+        connectOptionsBuilder.enableAutomaticSubscription(enableAutomaticSubscription)
 
         room = Video.connect(this, connectOptionsBuilder.build(), roomListener)
         setDisconnectAction()
