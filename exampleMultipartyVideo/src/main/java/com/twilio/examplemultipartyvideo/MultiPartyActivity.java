@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -20,7 +21,9 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -131,8 +134,9 @@ public class MultiPartyActivity extends AppCompatActivity {
     private boolean disconnectedFromOnDestroy;
     private boolean isSpeakerPhoneEnabled = true;
 
-    private Stack<VideoTextureView> availableVideoTextureViews = new Stack<>();
-    private Map<Participant, VideoTextureView> videoViewMap = new HashMap<>();
+    private Stack<ViewGroup> availableParticipantContainers = new Stack<>();
+    private Map<String, ViewGroup> participantViewGroupMap = new HashMap<>();
+    private ImageView currentDominantSpeakerImg;
     private VideoTextureView localVideoTextureView;
 
     @Override
@@ -148,7 +152,7 @@ public class MultiPartyActivity extends AppCompatActivity {
         localVideoActionFab = findViewById(R.id.local_video_action_fab);
         muteActionFab = findViewById(R.id.mute_action_fab);
 
-        initializeVideoTextureViews();
+        initializeParticipantContainers();
         /*
          * Get shared preferences to read settings
          */
@@ -365,7 +369,7 @@ public class MultiPartyActivity extends AppCompatActivity {
 
     private void connectToRoom(String roomName) {
         configureAudio(true);
-        ConnectOptions.Builder connectOptionsBuilder = new ConnectOptions.Builder(accessToken)
+        ConnectOptions.Builder connectOptionsBuilder = new ConnectOptions.Builder(accessToken).enableDominantSpeaker(true)
                 .roomName(roomName);
 
         /*
@@ -410,6 +414,8 @@ public class MultiPartyActivity extends AppCompatActivity {
         localVideoActionFab.setOnClickListener(localVideoClickListener());
         muteActionFab.show();
         muteActionFab.setOnClickListener(muteClickListener());
+
+        currentDominantSpeakerImg = null;
     }
 
     /*
@@ -434,34 +440,37 @@ public class MultiPartyActivity extends AppCompatActivity {
         connectDialog.show();
     }
 
-    private void initializeVideoTextureViews() {
-        localVideoTextureView = findViewById(R.id.local_participant_video_texture_view);
+    private void initializeParticipantContainers() {
+        ViewGroup localParticipantContainer = findViewById(R.id.local_participant_container);
+        localVideoTextureView = localParticipantContainer.findViewById(R.id.video_view_local);
         localVideoTextureView.setMirror(true);
 
-        videoViewMap.clear();
-        videoViewMap.put(localParticipant, localVideoTextureView);
+        participantViewGroupMap.clear();
 
-        availableVideoTextureViews.clear();
+        availableParticipantContainers.clear();
 
-        VideoTextureView remoteParticipantVideoTextureView3 = findViewById(R.id.remote_participant_video_texture_view3);
+        ViewGroup bottomRightPartipantContainer = findViewById(R.id.bottom_right_container);
+        VideoTextureView remoteParticipantVideoTextureView3 = bottomRightPartipantContainer.findViewById(R.id.video_view_bottom_right);
         remoteParticipantVideoTextureView3.setVisibility(GONE);
-        availableVideoTextureViews.push(remoteParticipantVideoTextureView3);
+        availableParticipantContainers.push(bottomRightPartipantContainer);
 
-        VideoTextureView remoteParticipantVideoTextureView2 = findViewById(R.id.remote_participant_video_texture_view2);
+        ViewGroup bottomLeftPartipantContainer = findViewById(R.id.bottom_left_container);
+        VideoTextureView remoteParticipantVideoTextureView2 = bottomLeftPartipantContainer.findViewById(R.id.video_view_bottom_left);
         remoteParticipantVideoTextureView2.setVisibility(GONE);
-        availableVideoTextureViews.push(remoteParticipantVideoTextureView2);
+        availableParticipantContainers.push(bottomLeftPartipantContainer);
 
-        VideoTextureView remoteParticipantVideoTextureView1 = findViewById(R.id.remote_participant_video_texture_view1);
+        ViewGroup topRightParticipantContainer = findViewById(R.id.top_right_container);
+        VideoTextureView remoteParticipantVideoTextureView1 = topRightParticipantContainer.findViewById(R.id.video_view_top_right);
         remoteParticipantVideoTextureView1.setVisibility(GONE);
-        availableVideoTextureViews.push(remoteParticipantVideoTextureView1);
+        availableParticipantContainers.push(topRightParticipantContainer);
     }
 
-    private VideoTextureView getAvailableVideoTextureView() {
-        if (availableVideoTextureViews.size() == 0) {
+    private ViewGroup getAvailableParticipantContainer() {
+        if (availableParticipantContainers.size() == 0) {
             throw new RuntimeException(String.format("This example app doesn't support more than %d RemoteParticipants", MAX_PARTICIPANTS));
         }
         // Just remove the first element
-        return availableVideoTextureViews.pop();
+        return availableParticipantContainers.pop();
     }
 
     /*
@@ -496,11 +505,17 @@ public class MultiPartyActivity extends AppCompatActivity {
      * Set primary view as renderer for participant video track
      */
     private void addRemoteParticipantVideo(RemoteParticipant remoteParticipant, VideoTrack videoTrack) {
-        VideoTextureView videoTextureView = getAvailableVideoTextureView();
-        videoTextureView.setTag(videoTrack);
-        videoTextureView.setVisibility(View.VISIBLE);
-        videoTrack.addRenderer(videoTextureView);
-        videoViewMap.put(remoteParticipant, videoTextureView);
+        ViewGroup participantContainer = getAvailableParticipantContainer();
+        for(int i = 0; i < participantContainer.getChildCount(); i++) {
+            View v = participantContainer.getChildAt(i);
+            if(v instanceof VideoTextureView) {
+                VideoTextureView videoTextureView = (VideoTextureView)v;
+                videoTextureView.setTag(videoTrack);
+                videoTextureView.setVisibility(View.VISIBLE);
+                videoTrack.addRenderer(videoTextureView);
+            }
+        }
+        participantViewGroupMap.put(remoteParticipant.getSid(), participantContainer);
     }
 
     /*
@@ -529,13 +544,24 @@ public class MultiPartyActivity extends AppCompatActivity {
     }
 
     private void removeParticipantVideo(RemoteParticipant remoteParticipant) {
-        VideoTextureView videoTextureView = videoViewMap.get(remoteParticipant);
-        VideoTrack videoTrack = (VideoTrack) videoTextureView.getTag();
-        videoTrack.removeRenderer(videoTextureView);
-        videoTextureView.setTag(null);
-        videoViewMap.remove(remoteParticipant);
-        videoTextureView.setVisibility(GONE);
-        availableVideoTextureViews.add(videoTextureView);
+        ViewGroup participantContainer = participantViewGroupMap.get(remoteParticipant.getSid());
+        for(int i = 0; i < participantContainer.getChildCount(); i++) {
+            View v = participantContainer.getChildAt(i);
+            if (v instanceof VideoTextureView) {
+                VideoTextureView videoTextureView = (VideoTextureView) v;
+
+                VideoTrack videoTrack = (VideoTrack) videoTextureView.getTag();
+                videoTrack.removeRenderer(videoTextureView);
+                videoTextureView.setTag(null);
+                participantViewGroupMap.remove(remoteParticipant.getSid());
+                videoTextureView.setVisibility(GONE);
+                availableParticipantContainers.add(participantContainer);
+            }
+            if (v instanceof ImageView) {
+                ImageView dominantSpeakerImg = (ImageView) v;
+                dominantSpeakerImg.setVisibility(View.GONE);
+            }
+        }
     }
 
     /*
@@ -582,8 +608,29 @@ public class MultiPartyActivity extends AppCompatActivity {
                 // Only reinitialize the UI if disconnect was not called from onDestroy()
                 if (!disconnectedFromOnDestroy) {
                     configureAudio(false);
-                    initializeVideoTextureViews();
+                    initializeParticipantContainers();
                     intializeUI();
+                }
+            }
+
+            @Override
+            public void onDominantSpeakerChanged(@NonNull Room room, @Nullable RemoteParticipant remoteParticipant) {
+                if(remoteParticipant == null){
+                    if(currentDominantSpeakerImg != null){
+                        currentDominantSpeakerImg.setVisibility(View.GONE);
+                    }
+                    return;
+                }
+                ViewGroup participantContainer = participantViewGroupMap.get(remoteParticipant.getSid());
+                for (int i = 0; i < participantContainer.getChildCount(); i++) {
+                    View v = participantContainer.getChildAt(i);
+                    if (v instanceof ImageView) {
+                        if (currentDominantSpeakerImg != null) {
+                            currentDominantSpeakerImg.setVisibility(View.GONE);
+                        }
+                        currentDominantSpeakerImg = (ImageView) v;
+                        currentDominantSpeakerImg.setVisibility(View.VISIBLE);
+                    }
                 }
             }
 

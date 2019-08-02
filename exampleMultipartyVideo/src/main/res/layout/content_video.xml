@@ -14,15 +14,16 @@
         android:orientation="horizontal">
 
         <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
+            android:id="@+id/local_participant_container"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:tag="local"
+            android:layout_weight="0.5"
+            >
             <com.twilio.video.VideoTextureView
-                android:id="@+id/local_participant_video_texture_view"
+                android:id="@+id/video_view_local"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="0.5" />
-
+                android:layout_height="match_parent"/>
 
             <ImageView
                 android:id="@+id/dominant_speaker_img_local"
@@ -31,27 +32,32 @@
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentBottom="true"
                 android:layout_margin="5dp"
+                android:visibility="gone"
                 android:src="@android:drawable/ic_lock_silent_mode_off" />
         </RelativeLayout>
 
         <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:id="@+id/top_right_container"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.5"
+            android:tag="top_right"
+            >
 
             <com.twilio.video.VideoTextureView
-                android:id="@+id/remote_participant_video_texture_view1"
+                android:id="@+id/video_view_top_right"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_weight="0.5"
                 android:visibility="gone" />
 
             <ImageView
-                android:id="@+id/dominant_speaker_img_1"
+                android:id="@+id/dominant_speaker_img_top_right"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentBottom="true"
                 android:layout_margin="5dp"
+                android:visibility="gone"
                 android:src="@android:drawable/ic_lock_silent_mode_off" />
         </RelativeLayout>
     </LinearLayout>
@@ -71,44 +77,51 @@
         android:orientation="horizontal">
 
         <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:id="@+id/bottom_left_container"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.5"
+            android:tag="bottom_left">
 
             <com.twilio.video.VideoTextureView
-                android:id="@+id/remote_participant_video_texture_view2"
+                android:id="@+id/video_view_bottom_left"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="0.5"
                 android:visibility="gone" />
 
             <ImageView
-                android:id="@+id/dominant_speaker_img2"
+                android:id="@+id/dominant_speaker_img_bottom_left"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentBottom="true"
                 android:layout_margin="5dp"
+                android:visibility="gone"
                 android:src="@android:drawable/ic_lock_silent_mode_off" />
         </RelativeLayout>
 
         <RelativeLayout
+            android:id="@+id/bottom_right_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:layout_weight="0.5"
+            android:tag="bottom_right"
+            >
 
             <com.twilio.video.VideoTextureView
-                android:id="@+id/remote_participant_video_texture_view3"
+                android:id="@+id/video_view_bottom_right"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="0.5"
                 android:visibility="gone" />
 
             <ImageView
-                android:id="@+id/dominant_speaker_img3"
+                android:id="@+id/dominant_speaker_img_bottom_right"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentBottom="true"
                 android:layout_margin="5dp"
+                android:visibility="gone"
                 android:src="@android:drawable/ic_lock_silent_mode_off" />
 
         </RelativeLayout>
