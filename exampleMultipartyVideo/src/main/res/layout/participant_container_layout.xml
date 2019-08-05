@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.twilio.examplemultipartyvideo.ParticipantContainerView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+            <com.twilio.video.VideoView
+                android:id="@+id/video_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+            <ImageView
+                android:id="@+id/dominant_speaker_img"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentBottom="true"
+                android:layout_margin="5dp"
+                android:visibility="gone"
+                android:src="@android:drawable/ic_lock_silent_mode_off" />
+</com.twilio.examplemultipartyvideo.ParticipantContainerView>
