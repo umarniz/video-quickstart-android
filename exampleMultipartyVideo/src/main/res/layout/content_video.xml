@@ -14,18 +14,27 @@
         android:layout_weight="0.5"
         android:orientation="horizontal">
 
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_weight="0.5"
+            android:layout_height="wrap_content">
+
         <com.twilio.video.VideoTextureView
             android:id="@+id/local_participant_video_texture_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="0.5" />
+            android:layout_height="match_parent"/>
 
+        </RelativeLayout>
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_weight="0.5"
+            android:layout_height="wrap_content">
         <com.twilio.video.VideoTextureView
             android:id="@+id/remote_participant_video_texture_view1"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="0.5"
             android:visibility="gone" />
+        </RelativeLayout>
     </LinearLayout>
 
     <ProgressBar
@@ -42,19 +51,29 @@
         android:layout_weight="0.5"
         android:orientation="horizontal">
 
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_weight="0.5"
+            android:layout_height="wrap_content">
+
         <com.twilio.video.VideoTextureView
             android:id="@+id/remote_participant_video_texture_view2"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="0.5"
             android:visibility="gone" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_weight="0.5"
+            android:layout_height="wrap_content">
 
         <com.twilio.video.VideoTextureView
             android:id="@+id/remote_participant_video_texture_view3"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="0.5"
             android:visibility="gone" />
+        </RelativeLayout>
     </LinearLayout>
 
 </LinearLayout>

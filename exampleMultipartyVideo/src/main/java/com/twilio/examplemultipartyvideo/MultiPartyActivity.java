@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -20,8 +21,11 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -134,6 +138,7 @@ public class MultiPartyActivity extends AppCompatActivity {
     private Stack<VideoTextureView> availableVideoTextureViews = new Stack<>();
     private Map<Participant, VideoTextureView> videoViewMap = new HashMap<>();
     private VideoTextureView localVideoTextureView;
+    private ImageView dominantSpeakerImg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -365,7 +370,7 @@ public class MultiPartyActivity extends AppCompatActivity {
 
     private void connectToRoom(String roomName) {
         configureAudio(true);
-        ConnectOptions.Builder connectOptionsBuilder = new ConnectOptions.Builder(accessToken)
+        ConnectOptions.Builder connectOptionsBuilder = new ConnectOptions.Builder(accessToken).enableDominantSpeaker(true)
                 .roomName(roomName);
 
         /*
@@ -410,6 +415,8 @@ public class MultiPartyActivity extends AppCompatActivity {
         localVideoActionFab.setOnClickListener(localVideoClickListener());
         muteActionFab.show();
         muteActionFab.setOnClickListener(muteClickListener());
+        dominantSpeakerImg = new ImageView(this);
+        dominantSpeakerImg.setImageResource(android.R.drawable.ic_lock_silent_mode_off);
     }
 
     /*
@@ -584,6 +591,23 @@ public class MultiPartyActivity extends AppCompatActivity {
                     configureAudio(false);
                     initializeVideoTextureViews();
                     intializeUI();
+                }
+            }
+
+            @Override
+            public void onDominantSpeakerChanged(@NonNull Room room, @Nullable RemoteParticipant remoteParticipant) {
+                if (dominantSpeakerImg.getParent() != null) {
+                    ((ViewGroup) dominantSpeakerImg.getParent()).removeView(dominantSpeakerImg);
+                }
+                if (remoteParticipant != null) {
+                    VideoTextureView videoTextureView = videoViewMap.get(remoteParticipant);
+                    ViewGroup parent = (ViewGroup) videoTextureView.getParent();
+
+                    RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(120, 120);
+                    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+                    dominantSpeakerImg.setLayoutParams(layoutParams);
+
+                    parent.addView(dominantSpeakerImg);
                 }
             }
 
