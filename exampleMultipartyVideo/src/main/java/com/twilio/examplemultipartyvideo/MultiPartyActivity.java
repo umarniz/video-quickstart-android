@@ -234,7 +234,6 @@ public class MultiPartyActivity extends AppCompatActivity {
              */
             if (localParticipant != null) {
                 localParticipant.publishTrack(localVideoTrack);
-
             }
         }
 
@@ -251,6 +250,10 @@ public class MultiPartyActivity extends AppCompatActivity {
                     GONE :
                     View.VISIBLE);
             videoStatusTextView.setText("Connected to " + room.getName());
+
+            if(room.getDominantSpeaker() != null){
+                currentDominantSpeakerImg.setVisibility(View.VISIBLE);
+            }
         }
     }
 
