@@ -17,5 +17,5 @@
                 android:layout_alignParentBottom="true"
                 android:layout_margin="5dp"
                 android:visibility="gone"
-                android:src="@android:drawable/ic_lock_silent_mode_off" />
+                android:src="@drawable/dominant_speaker_icon" />
 </com.twilio.examplemultipartyvideo.ParticipantContainerView>
