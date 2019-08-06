@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.twilio.examplemultipartyvideo.ParticipantContainerView
+<com.twilio.examplemultipartyvideo.ParticipantView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -18,4 +18,4 @@
                 android:layout_margin="5dp"
                 android:visibility="gone"
                 android:src="@drawable/dominant_speaker_icon" />
-</com.twilio.examplemultipartyvideo.ParticipantContainerView>
+</com.twilio.examplemultipartyvideo.ParticipantView>

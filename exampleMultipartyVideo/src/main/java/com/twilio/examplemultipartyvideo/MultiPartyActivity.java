@@ -132,8 +132,8 @@ public class MultiPartyActivity extends AppCompatActivity {
     private boolean disconnectedFromOnDestroy;
     private boolean isSpeakerPhoneEnabled = true;
 
-    private Stack<ParticipantContainerView> availableParticipantContainers = new Stack<>();
-    private Map<String, ParticipantContainerView> participantViewGroupMap = new HashMap<>();
+    private Stack<ParticipantView> availableParticipantContainers = new Stack<>();
+    private Map<String, ParticipantView> participantViewGroupMap = new HashMap<>();
     private ImageView currentDominantSpeakerImg;
     private VideoView localVideoView;
 
@@ -442,7 +442,7 @@ public class MultiPartyActivity extends AppCompatActivity {
     }
 
     private void initializeParticipantContainers() {
-        ParticipantContainerView localParticipantContainer = findViewById(R.id.local_participant_container);
+        ParticipantView localParticipantContainer = findViewById(R.id.local_participant_container);
         localVideoView = localParticipantContainer.getVideoView();
         localVideoView.setMirror(true);
 
@@ -450,23 +450,23 @@ public class MultiPartyActivity extends AppCompatActivity {
 
         availableParticipantContainers.clear();
 
-        ParticipantContainerView bottomRightPartipantContainer = findViewById(R.id.bottom_right_container);
+        ParticipantView bottomRightPartipantContainer = findViewById(R.id.bottom_right_container);
         VideoView remoteParticipantVideoTextureView3 = bottomRightPartipantContainer.getVideoView();
         remoteParticipantVideoTextureView3.setVisibility(GONE);
         availableParticipantContainers.push(bottomRightPartipantContainer);
 
-        ParticipantContainerView bottomLeftPartipantContainer = findViewById(R.id.bottom_left_container);
+        ParticipantView bottomLeftPartipantContainer = findViewById(R.id.bottom_left_container);
         VideoView remoteParticipantVideoTextureView2 = bottomLeftPartipantContainer.getVideoView();
         remoteParticipantVideoTextureView2.setVisibility(GONE);
         availableParticipantContainers.push(bottomLeftPartipantContainer);
 
-        ParticipantContainerView topRightParticipantContainer = findViewById(R.id.top_right_container);
+        ParticipantView topRightParticipantContainer = findViewById(R.id.top_right_container);
         VideoView remoteParticipantVideoTextureView1 = topRightParticipantContainer.getVideoView();
         remoteParticipantVideoTextureView1.setVisibility(GONE);
         availableParticipantContainers.push(topRightParticipantContainer);
     }
 
-    private ParticipantContainerView getAvailableParticipantContainer() {
+    private ParticipantView getAvailableParticipantContainer() {
         if (availableParticipantContainers.size() == 0) {
             throw new RuntimeException(String.format("This example app doesn't support more than %d RemoteParticipants", MAX_PARTICIPANTS));
         }
@@ -506,7 +506,7 @@ public class MultiPartyActivity extends AppCompatActivity {
      * Set primary view as renderer for participant video track
      */
     private void addRemoteParticipantVideo(RemoteParticipant remoteParticipant, VideoTrack videoTrack) {
-        ParticipantContainerView participantContainer = participantViewGroupMap.get(remoteParticipant.getSid());
+        ParticipantView participantContainer = participantViewGroupMap.get(remoteParticipant.getSid());
         if (participantContainer == null) {
             participantContainer = getAvailableParticipantContainer();
         }
@@ -544,7 +544,7 @@ public class MultiPartyActivity extends AppCompatActivity {
     }
 
     private void removeParticipantVideo(RemoteParticipant remoteParticipant) {
-        ParticipantContainerView participantContainer = participantViewGroupMap.get(remoteParticipant.getSid());
+        ParticipantView participantContainer = participantViewGroupMap.get(remoteParticipant.getSid());
         VideoView videoView = participantContainer.getVideoView();
 
         VideoTrack videoTrack = (VideoTrack) videoView.getTag();
@@ -615,7 +615,7 @@ public class MultiPartyActivity extends AppCompatActivity {
                     }
                     return;
                 }
-                ParticipantContainerView participantContainer = participantViewGroupMap.get(remoteParticipant.getSid());
+                ParticipantView participantContainer = participantViewGroupMap.get(remoteParticipant.getSid());
                 if (participantContainer != null) {
                     if (currentDominantSpeakerImg != null) {
                         currentDominantSpeakerImg.setVisibility(View.GONE);

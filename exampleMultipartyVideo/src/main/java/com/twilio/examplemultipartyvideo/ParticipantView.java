@@ -10,19 +10,19 @@ import com.twilio.video.VideoView;
 /**
  * TODO: document your custom view class.
  */
-public class ParticipantContainerView extends RelativeLayout {
+public class ParticipantView extends RelativeLayout {
     private VideoView videoView;
     private ImageView dominantSpeakerImg;
 
-    public ParticipantContainerView(Context context) {
+    public ParticipantView(Context context) {
         super(context);
     }
 
-    public ParticipantContainerView(Context context, AttributeSet attrs) {
+    public ParticipantView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public ParticipantContainerView(Context context, AttributeSet attrs, int defStyle) {
+    public ParticipantView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
     }
 

@@ -1,4 +1,4 @@
 <resources>
-    <declare-styleable name="ParticipantContainerView">
+    <declare-styleable name="ParticipantView">
     </declare-styleable>
 </resources>
