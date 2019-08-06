@@ -41,7 +41,7 @@
         android:layout_height="match_parent"
         android:layout_weight="0.5"
         android:orientation="horizontal">
-        
+
         <include
             android:id="@+id/bottom_left_container"
             layout="@layout/participant_container_layout"
