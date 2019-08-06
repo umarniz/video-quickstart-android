@@ -843,8 +843,6 @@ public class MultiPartyActivity extends AppCompatActivity {
                         remoteVideoTrack.isEnabled(),
                         remoteVideoTrack.getName()));
                 videoStatusTextView.setText("onVideoTrackSubscribed");
-
-                ParticipantContainerView participantContainerView = participantViewGroupMap.get(remoteParticipant.getSid());
                 addRemoteParticipantVideo(remoteParticipant, remoteVideoTrack);
             }
 

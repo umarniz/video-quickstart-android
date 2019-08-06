@@ -57,9 +57,8 @@
         <include
             layout="@layout/participant_container_layout"
             android:id="@+id/bottom_right_container"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
             android:layout_weight="0.5"
-            android:tag="bottom_right"/>
+            android:layout_width="0dp"
+            android:layout_height="match_parent"/>
     </LinearLayout>
 </LinearLayout>
