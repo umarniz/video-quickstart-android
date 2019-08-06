@@ -7,9 +7,6 @@ import android.widget.RelativeLayout;
 
 import com.twilio.video.VideoView;
 
-/**
- * TODO: document your custom view class.
- */
 public class ParticipantView extends RelativeLayout {
     private VideoView videoView;
     private ImageView dominantSpeakerImg;
