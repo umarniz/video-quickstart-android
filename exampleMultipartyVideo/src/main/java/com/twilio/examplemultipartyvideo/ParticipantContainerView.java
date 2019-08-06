@@ -5,7 +5,6 @@ import android.util.AttributeSet;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
-import com.twilio.video.VideoTextureView;
 import com.twilio.video.VideoView;
 
 /**
@@ -27,9 +26,9 @@ public class ParticipantContainerView extends RelativeLayout {
         super(context, attrs, defStyle);
     }
 
-    private void init(){
+    private void init() {
         videoView = findViewById(R.id.video_view);
-        dominantSpeakerImg= findViewById(R.id.dominant_speaker_img);
+        dominantSpeakerImg = findViewById(R.id.dominant_speaker_img);
     }
 
     public VideoView getVideoView() {

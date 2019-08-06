@@ -49,7 +49,6 @@ import com.twilio.video.Room;
 import com.twilio.video.TwilioException;
 import com.twilio.video.Video;
 import com.twilio.video.VideoCodec;
-import com.twilio.video.VideoTextureView;
 import com.twilio.video.VideoTrack;
 import com.twilio.video.VideoView;
 import com.twilio.video.Vp8Codec;
@@ -505,7 +504,7 @@ public class MultiPartyActivity extends AppCompatActivity {
      */
     private void addRemoteParticipantVideo(RemoteParticipant remoteParticipant, VideoTrack videoTrack) {
         ParticipantContainerView participantContainer = participantViewGroupMap.get(remoteParticipant.getSid());
-        if(participantContainer == null) {
+        if (participantContainer == null) {
             participantContainer = getAvailableParticipantContainer();
         }
         VideoView videoView = participantContainer.getVideoView();
@@ -607,14 +606,14 @@ public class MultiPartyActivity extends AppCompatActivity {
 
             @Override
             public void onDominantSpeakerChanged(@NonNull Room room, @Nullable RemoteParticipant remoteParticipant) {
-                if(remoteParticipant == null){
-                    if(currentDominantSpeakerImg != null){
+                if (remoteParticipant == null) {
+                    if (currentDominantSpeakerImg != null) {
                         currentDominantSpeakerImg.setVisibility(View.GONE);
                     }
                     return;
                 }
                 ParticipantContainerView participantContainer = participantViewGroupMap.get(remoteParticipant.getSid());
-                if(participantContainer != null) {
+                if (participantContainer != null) {
                     if (currentDominantSpeakerImg != null) {
                         currentDominantSpeakerImg.setVisibility(View.GONE);
                     }
