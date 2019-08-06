@@ -49,8 +49,8 @@ import com.twilio.video.Room;
 import com.twilio.video.TwilioException;
 import com.twilio.video.Video;
 import com.twilio.video.VideoCodec;
+import com.twilio.video.VideoTextureView;
 import com.twilio.video.VideoTrack;
-import com.twilio.video.VideoView;
 import com.twilio.video.Vp8Codec;
 
 import java.util.Collections;
@@ -135,7 +135,7 @@ public class MultiPartyActivity extends AppCompatActivity {
     private Stack<ParticipantView> availableParticipantContainers = new Stack<>();
     private Map<String, ParticipantView> participantViewGroupMap = new HashMap<>();
     private ImageView currentDominantSpeakerImg;
-    private VideoView localVideoView;
+    private VideoTextureView localVideoTextureView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -227,7 +227,7 @@ public class MultiPartyActivity extends AppCompatActivity {
                     true,
                     cameraCapturerCompat,
                     LOCAL_VIDEO_TRACK_NAME);
-            localVideoTrack.addRenderer(localVideoView);
+            localVideoTrack.addRenderer(localVideoTextureView);
 
             /*
              * If connected to a Room then share the local video track.
@@ -339,7 +339,7 @@ public class MultiPartyActivity extends AppCompatActivity {
                 true,
                 cameraCapturerCompat,
                 LOCAL_VIDEO_TRACK_NAME);
-        localVideoTrack.addRenderer(localVideoView);
+        localVideoTrack.addRenderer(localVideoTextureView);
     }
 
     private CameraSource getAvailableCameraSource() {
@@ -443,25 +443,25 @@ public class MultiPartyActivity extends AppCompatActivity {
 
     private void initializeParticipantContainers() {
         ParticipantView localParticipantContainer = findViewById(R.id.local_participant_container);
-        localVideoView = localParticipantContainer.getVideoView();
-        localVideoView.setMirror(true);
+        localVideoTextureView = localParticipantContainer.getVideoView();
+        localVideoTextureView.setMirror(true);
 
         participantViewGroupMap.clear();
 
         availableParticipantContainers.clear();
 
         ParticipantView bottomRightPartipantContainer = findViewById(R.id.bottom_right_container);
-        VideoView remoteParticipantVideoTextureView3 = bottomRightPartipantContainer.getVideoView();
+        VideoTextureView remoteParticipantVideoTextureView3 = bottomRightPartipantContainer.getVideoView();
         remoteParticipantVideoTextureView3.setVisibility(GONE);
         availableParticipantContainers.push(bottomRightPartipantContainer);
 
         ParticipantView bottomLeftPartipantContainer = findViewById(R.id.bottom_left_container);
-        VideoView remoteParticipantVideoTextureView2 = bottomLeftPartipantContainer.getVideoView();
+        VideoTextureView remoteParticipantVideoTextureView2 = bottomLeftPartipantContainer.getVideoView();
         remoteParticipantVideoTextureView2.setVisibility(GONE);
         availableParticipantContainers.push(bottomLeftPartipantContainer);
 
         ParticipantView topRightParticipantContainer = findViewById(R.id.top_right_container);
-        VideoView remoteParticipantVideoTextureView1 = topRightParticipantContainer.getVideoView();
+        VideoTextureView remoteParticipantVideoTextureView1 = topRightParticipantContainer.getVideoView();
         remoteParticipantVideoTextureView1.setVisibility(GONE);
         availableParticipantContainers.push(topRightParticipantContainer);
     }
@@ -510,11 +510,11 @@ public class MultiPartyActivity extends AppCompatActivity {
         if (participantContainer == null) {
             participantContainer = getAvailableParticipantContainer();
         }
-        VideoView videoView = participantContainer.getVideoView();
+        VideoTextureView videoTextureView = participantContainer.getVideoView();
 
-        videoView.setTag(videoTrack);
-        videoView.setVisibility(View.VISIBLE);
-        videoTrack.addRenderer(videoView);
+        videoTextureView.setTag(videoTrack);
+        videoTextureView.setVisibility(View.VISIBLE);
+        videoTrack.addRenderer(videoTextureView);
         participantViewGroupMap.put(remoteParticipant.getSid(), participantContainer);
     }
 
@@ -545,11 +545,11 @@ public class MultiPartyActivity extends AppCompatActivity {
 
     private void removeParticipantVideo(RemoteParticipant remoteParticipant) {
         ParticipantView participantContainer = participantViewGroupMap.get(remoteParticipant.getSid());
-        VideoView videoView = participantContainer.getVideoView();
+        VideoTextureView videoTextureView = participantContainer.getVideoView();
 
-        VideoTrack videoTrack = (VideoTrack) videoView.getTag();
-        videoTrack.removeRenderer(videoView);
-        videoView.setVisibility(GONE);
+        VideoTrack videoTrack = (VideoTrack) videoTextureView.getTag();
+        videoTrack.removeRenderer(videoTextureView);
+        videoTextureView.setVisibility(GONE);
 
         participantViewGroupMap.remove(remoteParticipant.getSid());
         availableParticipantContainers.add(participantContainer);

@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-            <com.twilio.video.VideoView
+            <com.twilio.video.VideoTextureView
                 android:id="@+id/video_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"/>
@@ -17,5 +17,5 @@
                 android:layout_alignParentBottom="true"
                 android:layout_margin="5dp"
                 android:visibility="gone"
-                android:src="@drawable/dominant_speaker_icon" />
+                android:src="@drawable/ic_dominant_speaker_img" />
 </com.twilio.examplemultipartyvideo.ParticipantView>

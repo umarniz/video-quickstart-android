@@ -5,10 +5,10 @@ import android.util.AttributeSet;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
-import com.twilio.video.VideoView;
+import com.twilio.video.VideoTextureView;
 
 public class ParticipantView extends RelativeLayout {
-    private VideoView videoView;
+    private VideoTextureView videoView;
     private ImageView dominantSpeakerImg;
 
     public ParticipantView(Context context) {
@@ -28,7 +28,7 @@ public class ParticipantView extends RelativeLayout {
         dominantSpeakerImg = findViewById(R.id.dominant_speaker_img);
     }
 
-    public VideoView getVideoView() {
+    public VideoTextureView getVideoView() {
         return videoView;
     }
 
