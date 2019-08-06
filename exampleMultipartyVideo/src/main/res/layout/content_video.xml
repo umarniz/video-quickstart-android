@@ -18,18 +18,14 @@
             android:id="@+id/local_participant_container"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:tag="local"
-            android:layout_weight="0.5"
-            />
+            android:layout_weight="0.5" />
 
         <include
             layout="@layout/participant_container_layout"
             android:id="@+id/top_right_container"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="0.5"
-            android:tag="top_right"
-            />
+            android:layout_weight="0.5" />
     </LinearLayout>
 
     <ProgressBar
@@ -45,8 +41,7 @@
         android:layout_height="match_parent"
         android:layout_weight="0.5"
         android:orientation="horizontal">
-
-
+        
         <include
             android:id="@+id/bottom_left_container"
             layout="@layout/participant_container_layout"
