@@ -51,7 +51,8 @@ class CameraCapturerCompat(context: Context, cameraSource: CameraCapturer.Camera
 
 
     init {
-        if (Camera2Capturer.isSupported(context)) {
+        val isCamera2CapturerSupported = false // Camera2Capturer.isSupported(context))
+        if (isCamera2CapturerSupported) {
             setCameraPairs(context)
             camera2Capturer = Camera2Capturer(context,
                     getCameraId(cameraSource),
