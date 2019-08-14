@@ -1,6 +1,12 @@
 package com.twilio.video.quickstart.util;
 
 import android.content.Context;
+import android.graphics.ImageFormat;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.params.StreamConfigurationMap;
+import android.os.Build;
 import android.util.Log;
 import android.util.Pair;
 
@@ -20,6 +26,7 @@ public class CameraCapturerCompat {
     private Camera2Capturer camera2Capturer;
     private Pair<CameraCapturer.CameraSource, String> frontCameraPair;
     private Pair<CameraCapturer.CameraSource, String> backCameraPair;
+    private CameraManager cameraManager;
     private final Camera2Capturer.Listener camera2Listener = new Camera2Capturer.Listener() {
         @Override
         public void onFirstFrameAvailable() {
@@ -39,11 +46,14 @@ public class CameraCapturerCompat {
 
     public CameraCapturerCompat(Context context,
                                 CameraCapturer.CameraSource cameraSource) {
-        if (Camera2Capturer.isSupported(context)) {
+        if (Camera2Capturer.isSupported(context) && isLollipopApiSupported()) {
+            cameraManager =
+                    (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
             setCameraPairs(context);
             camera2Capturer = new Camera2Capturer(context,
                     getCameraId(cameraSource),
                     camera2Listener);
+
         } else {
             camera1Capturer = new CameraCapturer(context, cameraSource);
         }
@@ -91,6 +101,12 @@ public class CameraCapturerCompat {
     private void setCameraPairs(Context context) {
         Camera2Enumerator camera2Enumerator = new Camera2Enumerator(context);
         for (String cameraId : camera2Enumerator.getDeviceNames()) {
+            if (!isPrivateImageFormatSupportedForCameraId(cameraId)) {
+                // This is a temporary work around for a crash on the Samsung S10 that occurs due to the presence of many different cameras.
+                // A long term fix is currently in development.
+                // https://github.com/twilio/video-quickstart-android/issues/431
+                continue;
+            }
             if (camera2Enumerator.isFrontFacing(cameraId)) {
                 frontCameraPair = new Pair<>(CameraCapturer.CameraSource.FRONT_CAMERA, cameraId);
             }
@@ -115,4 +131,25 @@ public class CameraCapturerCompat {
             return backCameraPair.first;
         }
     }
+
+    private boolean isLollipopApiSupported() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
+    }
+
+    private boolean isPrivateImageFormatSupportedForCameraId(String cameraId) {
+        boolean isPrivateSupported = true;
+        if (isLollipopApiSupported()) {
+            CameraCharacteristics cameraCharacteristics = null;
+            try {
+                cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId);
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
+            }
+            final StreamConfigurationMap streamMap =
+                    cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+            isPrivateSupported = streamMap.isOutputSupportedFor(ImageFormat.PRIVATE);
+        }
+        return isPrivateSupported;
+    }
+
 }
