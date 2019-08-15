@@ -7,6 +7,7 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.util.Pair;
 
@@ -26,6 +27,7 @@ public class CameraCapturerCompat {
     private Camera2Capturer camera2Capturer;
     private Pair<CameraCapturer.CameraSource, String> frontCameraPair;
     private Pair<CameraCapturer.CameraSource, String> backCameraPair;
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private CameraManager cameraManager;
     private final Camera2Capturer.Listener camera2Listener = new Camera2Capturer.Listener() {
         @Override
@@ -98,6 +100,7 @@ public class CameraCapturerCompat {
         return camera1Capturer != null;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void setCameraPairs(Context context) {
         Camera2Enumerator camera2Enumerator = new Camera2Enumerator(context);
         for (String cameraId : camera2Enumerator.getDeviceNames()) {
@@ -138,23 +141,19 @@ public class CameraCapturerCompat {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private boolean isPrivateImageFormatSupportedForCameraId(String cameraId) {
         boolean isPrivateImageFormatSupported;
-        if (isLollipopApiSupported()) {
-            CameraCharacteristics cameraCharacteristics = null;
-            try {
-                cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId);
-            } catch (CameraAccessException e) {
-                e.printStackTrace();
-            }
-            final StreamConfigurationMap streamMap =
-                    cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-            isPrivateImageFormatSupported = streamMap.isOutputSupportedFor(ImageFormat.PRIVATE);
+        CameraCharacteristics cameraCharacteristics;
+        try {
+            cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+            return false;
         }
-        else{
-            isPrivateImageFormatSupported = true;
-        }
+        final StreamConfigurationMap streamMap =
+                cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+        isPrivateImageFormatSupported = streamMap.isOutputSupportedFor(ImageFormat.PRIVATE);
         return isPrivateImageFormatSupported;
     }
-
 }
