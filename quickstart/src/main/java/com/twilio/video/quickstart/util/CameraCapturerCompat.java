@@ -102,9 +102,11 @@ public class CameraCapturerCompat {
         Camera2Enumerator camera2Enumerator = new Camera2Enumerator(context);
         for (String cameraId : camera2Enumerator.getDeviceNames()) {
             if (!isPrivateImageFormatSupportedForCameraId(cameraId)) {
-                // This is a temporary work around for a crash on the Samsung S10 that occurs due to the presence of many different cameras.
-                // A long term fix is currently in development.
-                // https://github.com/twilio/video-quickstart-android/issues/431
+                /*
+                 * This is a temporary work around for a RuntimeException that occurs on devices which contain cameras
+                 * that do not support ImageFormat.PRIVATE output formats. A long term fix is currently in development.
+                 * https://github.com/twilio/video-quickstart-android/issues/431
+                 */
                 continue;
             }
             if (camera2Enumerator.isFrontFacing(cameraId)) {
