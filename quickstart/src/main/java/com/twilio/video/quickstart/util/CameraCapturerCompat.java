@@ -139,7 +139,7 @@ public class CameraCapturerCompat {
     }
 
     private boolean isPrivateImageFormatSupportedForCameraId(String cameraId) {
-        boolean isPrivateSupported = true;
+        boolean isPrivateImageFormatSupported;
         if (isLollipopApiSupported()) {
             CameraCharacteristics cameraCharacteristics = null;
             try {
@@ -149,9 +149,12 @@ public class CameraCapturerCompat {
             }
             final StreamConfigurationMap streamMap =
                     cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-            isPrivateSupported = streamMap.isOutputSupportedFor(ImageFormat.PRIVATE);
+            isPrivateImageFormatSupported = streamMap.isOutputSupportedFor(ImageFormat.PRIVATE);
         }
-        return isPrivateSupported;
+        else{
+            isPrivateImageFormatSupported = true;
+        }
+        return isPrivateImageFormatSupported;
     }
 
 }
