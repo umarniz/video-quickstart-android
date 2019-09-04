@@ -100,10 +100,10 @@ class VideoActivity : AppCompatActivity() {
         get() {
             val maxAudioBitrate = Integer.parseInt(
                     sharedPreferences.getString(SettingsActivity.PREF_SENDER_MAX_AUDIO_BITRATE,
-                            SettingsActivity.PREF_SENDER_MAX_AUDIO_BITRATE_DEFAULT))
+                            SettingsActivity.PREF_SENDER_MAX_AUDIO_BITRATE_DEFAULT)!!)
             val maxVideoBitrate = Integer.parseInt(
                     sharedPreferences.getString(SettingsActivity.PREF_SENDER_MAX_VIDEO_BITRATE,
-                            SettingsActivity.PREF_SENDER_MAX_VIDEO_BITRATE_DEFAULT))
+                            SettingsActivity.PREF_SENDER_MAX_VIDEO_BITRATE_DEFAULT)!!)
 
             return EncodingParameters(maxAudioBitrate, maxVideoBitrate)
         }
