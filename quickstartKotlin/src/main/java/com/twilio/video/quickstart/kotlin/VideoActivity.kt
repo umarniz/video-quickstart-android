@@ -98,12 +98,16 @@ class VideoActivity : AppCompatActivity() {
      */
     private val encodingParameters: EncodingParameters
         get() {
+            val defaultMaxAudioBitrate = SettingsActivity.PREF_SENDER_MAX_AUDIO_BITRATE_DEFAULT
+            val defaultMaxVideoBitrate = SettingsActivity.PREF_SENDER_MAX_VIDEO_BITRATE_DEFAULT
             val maxAudioBitrate = Integer.parseInt(
                     sharedPreferences.getString(SettingsActivity.PREF_SENDER_MAX_AUDIO_BITRATE,
-                            SettingsActivity.PREF_SENDER_MAX_AUDIO_BITRATE_DEFAULT)!!)
+                            defaultMaxAudioBitrate) ?: defaultMaxAudioBitrate
+            )
             val maxVideoBitrate = Integer.parseInt(
                     sharedPreferences.getString(SettingsActivity.PREF_SENDER_MAX_VIDEO_BITRATE,
-                            SettingsActivity.PREF_SENDER_MAX_VIDEO_BITRATE_DEFAULT)!!)
+                            defaultMaxVideoBitrate) ?: defaultMaxVideoBitrate
+            )
 
             return EncodingParameters(maxAudioBitrate, maxVideoBitrate)
         }
