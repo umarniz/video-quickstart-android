@@ -116,7 +116,7 @@ The following snippet shows an example `build.gradle` with APK splits enabled.
     }
     
     dependencies {
-        compile "com.twilio:video-android:1.0.0-beta4"
+        compile "com.twilio:video-android:5.0.0"
     }
 
 The adoption of APK splits requires developers to submit multiple APKs to the Play Store. Refer to [Google’s documentation](https://developer.android.com/google/play/publishing/multiple-apks.html) for how to support this in your application.
@@ -345,7 +345,7 @@ snippet.
 
 ```
 # Insert the URL from ngrok
-ACCESS_TOKEN_SERVER=http://localhost:3000
+TWILIO_ACCESS_TOKEN_SERVER=http://localhost:3000
 
 # Inform quickstart you want to use a token server
 USE_TOKEN_SERVER=true
