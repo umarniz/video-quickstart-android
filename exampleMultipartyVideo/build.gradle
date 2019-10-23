@@ -47,4 +47,5 @@ dependencies {
     implementation "com.koushikdutta.ion:ion:${versions.ion}"
     implementation "com.twilio:video-android:${versions.videoAndroid}"
     implementation "com.android.support:design:${versions.supportLibrary}"
+    implementation "com.android.support.constraint:constraint-layout:1.1.3"
 }

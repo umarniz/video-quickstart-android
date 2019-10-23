@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -21,6 +22,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,10 +35,14 @@ import com.twilio.video.CameraCapturer.CameraSource;
 import com.twilio.video.ConnectOptions;
 import com.twilio.video.EncodingParameters;
 import com.twilio.video.LocalAudioTrack;
+import com.twilio.video.LocalAudioTrackPublication;
+import com.twilio.video.LocalDataTrack;
+import com.twilio.video.LocalDataTrackPublication;
 import com.twilio.video.LocalParticipant;
 import com.twilio.video.LocalVideoTrack;
+import com.twilio.video.LocalVideoTrackPublication;
+import com.twilio.video.NetworkQualityLevel;
 import com.twilio.video.OpusCodec;
-import com.twilio.video.Participant;
 import com.twilio.video.RemoteAudioTrack;
 import com.twilio.video.RemoteAudioTrackPublication;
 import com.twilio.video.RemoteDataTrack;
@@ -59,6 +65,7 @@ import java.util.Stack;
 import java.util.UUID;
 
 import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
 
 public class MultiPartyActivity extends AppCompatActivity {
     private static final int MAX_PARTICIPANTS = 4;
@@ -121,14 +128,16 @@ public class MultiPartyActivity extends AppCompatActivity {
     private AlertDialog connectDialog;
     private AudioManager audioManager;
     private String remoteParticipantIdentity;
+    private ImageView networkQualityLevelImage;
 
     private int previousAudioMode;
     private boolean previousMicrophoneMute;
     private boolean disconnectedFromOnDestroy;
     private boolean isSpeakerPhoneEnabled = true;
 
-    private Stack<VideoTextureView> availableVideoTextureViews = new Stack<>();
-    private Map<Participant, VideoTextureView> videoViewMap = new HashMap<>();
+    private Stack<ParticipantView> availableParticipantContainers = new Stack<>();
+    private Map<String, ParticipantView> participantViewGroupMap = new HashMap<>();
+    private ImageView currentDominantSpeakerImg;
     private VideoTextureView localVideoTextureView;
 
     @Override
@@ -143,8 +152,9 @@ public class MultiPartyActivity extends AppCompatActivity {
         switchCameraActionFab = findViewById(R.id.switch_camera_action_fab);
         localVideoActionFab = findViewById(R.id.local_video_action_fab);
         muteActionFab = findViewById(R.id.mute_action_fab);
+        networkQualityLevelImage = findViewById(R.id.network_quality_level);
 
-        initializeVideoTextureViews();
+        initializeParticipantContainers();
         /*
          * Get shared preferences to read settings
          */
@@ -228,7 +238,6 @@ public class MultiPartyActivity extends AppCompatActivity {
              */
             if (localParticipant != null) {
                 localParticipant.publishTrack(localVideoTrack);
-
             }
         }
 
@@ -243,8 +252,12 @@ public class MultiPartyActivity extends AppCompatActivity {
         if (room != null) {
             reconnectingProgressBar.setVisibility((room.getState() != Room.State.RECONNECTING) ?
                     GONE :
-                    View.VISIBLE);
+                    VISIBLE);
             videoStatusTextView.setText("Connected to " + room.getName());
+
+            if (room.getDominantSpeaker() != null) {
+                currentDominantSpeakerImg.setVisibility(VISIBLE);
+            }
         }
     }
 
@@ -361,7 +374,10 @@ public class MultiPartyActivity extends AppCompatActivity {
 
     private void connectToRoom(String roomName) {
         configureAudio(true);
-        ConnectOptions.Builder connectOptionsBuilder = new ConnectOptions.Builder(accessToken)
+        ConnectOptions.Builder connectOptionsBuilder = new ConnectOptions
+                .Builder(accessToken)
+                .enableDominantSpeaker(true)
+                .enableNetworkQuality(true)
                 .roomName(roomName);
 
         /*
@@ -401,6 +417,8 @@ public class MultiPartyActivity extends AppCompatActivity {
         localVideoActionFab.setOnClickListener(localVideoClickListener());
         muteActionFab.show();
         muteActionFab.setOnClickListener(muteClickListener());
+
+        currentDominantSpeakerImg = null;
     }
 
     /*
@@ -425,34 +443,37 @@ public class MultiPartyActivity extends AppCompatActivity {
         connectDialog.show();
     }
 
-    private void initializeVideoTextureViews() {
-        localVideoTextureView = findViewById(R.id.local_participant_video_texture_view);
+    private void initializeParticipantContainers() {
+        ParticipantView localParticipantContainer = findViewById(R.id.local_participant_container);
+        localVideoTextureView = localParticipantContainer.getVideoView();
         localVideoTextureView.setMirror(true);
 
-        videoViewMap.clear();
-        videoViewMap.put(localParticipant, localVideoTextureView);
+        participantViewGroupMap.clear();
 
-        availableVideoTextureViews.clear();
+        availableParticipantContainers.clear();
 
-        VideoTextureView remoteParticipantVideoTextureView3 = findViewById(R.id.remote_participant_video_texture_view3);
+        ParticipantView bottomRightPartipantContainer = findViewById(R.id.bottom_right_container);
+        VideoTextureView remoteParticipantVideoTextureView3 = bottomRightPartipantContainer.getVideoView();
         remoteParticipantVideoTextureView3.setVisibility(GONE);
-        availableVideoTextureViews.push(remoteParticipantVideoTextureView3);
+        availableParticipantContainers.push(bottomRightPartipantContainer);
 
-        VideoTextureView remoteParticipantVideoTextureView2 = findViewById(R.id.remote_participant_video_texture_view2);
+        ParticipantView bottomLeftPartipantContainer = findViewById(R.id.bottom_left_container);
+        VideoTextureView remoteParticipantVideoTextureView2 = bottomLeftPartipantContainer.getVideoView();
         remoteParticipantVideoTextureView2.setVisibility(GONE);
-        availableVideoTextureViews.push(remoteParticipantVideoTextureView2);
+        availableParticipantContainers.push(bottomLeftPartipantContainer);
 
-        VideoTextureView remoteParticipantVideoTextureView1 = findViewById(R.id.remote_participant_video_texture_view1);
+        ParticipantView topRightParticipantContainer = findViewById(R.id.top_right_container);
+        VideoTextureView remoteParticipantVideoTextureView1 = topRightParticipantContainer.getVideoView();
         remoteParticipantVideoTextureView1.setVisibility(GONE);
-        availableVideoTextureViews.push(remoteParticipantVideoTextureView1);
+        availableParticipantContainers.push(topRightParticipantContainer);
     }
 
-    private VideoTextureView getAvailableVideoTextureView() {
-        if (availableVideoTextureViews.size() == 0) {
+    private ParticipantView getAvailableParticipantContainer() {
+        if (availableParticipantContainers.size() == 0) {
             throw new RuntimeException(String.format("This example app doesn't support more than %d RemoteParticipants", MAX_PARTICIPANTS));
         }
         // Just remove the first element
-        return availableVideoTextureViews.pop();
+        return availableParticipantContainers.pop();
     }
 
     /*
@@ -487,11 +508,16 @@ public class MultiPartyActivity extends AppCompatActivity {
      * Set primary view as renderer for participant video track
      */
     private void addRemoteParticipantVideo(RemoteParticipant remoteParticipant, VideoTrack videoTrack) {
-        VideoTextureView videoTextureView = getAvailableVideoTextureView();
+        ParticipantView participantContainer = participantViewGroupMap.get(remoteParticipant.getSid());
+        if (participantContainer == null) {
+            participantContainer = getAvailableParticipantContainer();
+        }
+        VideoTextureView videoTextureView = participantContainer.getVideoView();
+
         videoTextureView.setTag(videoTrack);
-        videoTextureView.setVisibility(View.VISIBLE);
+        videoTextureView.setVisibility(VISIBLE);
         videoTrack.addRenderer(videoTextureView);
-        videoViewMap.put(remoteParticipant, videoTextureView);
+        participantViewGroupMap.put(remoteParticipant.getSid(), participantContainer);
     }
 
     /*
@@ -520,13 +546,18 @@ public class MultiPartyActivity extends AppCompatActivity {
     }
 
     private void removeParticipantVideo(RemoteParticipant remoteParticipant) {
-        VideoTextureView videoTextureView = videoViewMap.get(remoteParticipant);
+        ParticipantView participantContainer = participantViewGroupMap.get(remoteParticipant.getSid());
+        VideoTextureView videoTextureView = participantContainer.getVideoView();
+
         VideoTrack videoTrack = (VideoTrack) videoTextureView.getTag();
         videoTrack.removeRenderer(videoTextureView);
-        videoTextureView.setTag(null);
-        videoViewMap.remove(remoteParticipant);
         videoTextureView.setVisibility(GONE);
-        availableVideoTextureViews.add(videoTextureView);
+
+        participantViewGroupMap.remove(remoteParticipant.getSid());
+        availableParticipantContainers.add(participantContainer);
+
+        ImageView dominantSpeakerImg = participantContainer.getDominantSpeakerImg();
+        dominantSpeakerImg.setVisibility(GONE);
     }
 
     /*
@@ -536,7 +567,57 @@ public class MultiPartyActivity extends AppCompatActivity {
         return new Room.Listener() {
             @Override
             public void onConnected(Room room) {
+                networkQualityLevelImage.setVisibility(VISIBLE);
                 localParticipant = room.getLocalParticipant();
+                localParticipant.setListener(new LocalParticipant.Listener() {
+                    @Override
+                    public void onAudioTrackPublished(@NonNull LocalParticipant localParticipant, @NonNull LocalAudioTrackPublication localAudioTrackPublication) {
+
+                    }
+
+                    @Override
+                    public void onAudioTrackPublicationFailed(@NonNull LocalParticipant localParticipant, @NonNull LocalAudioTrack localAudioTrack, @NonNull TwilioException twilioException) {
+
+                    }
+
+                    @Override
+                    public void onVideoTrackPublished(@NonNull LocalParticipant localParticipant, @NonNull LocalVideoTrackPublication localVideoTrackPublication) {
+
+                    }
+
+                    @Override
+                    public void onVideoTrackPublicationFailed(@NonNull LocalParticipant localParticipant, @NonNull LocalVideoTrack localVideoTrack, @NonNull TwilioException twilioException) {
+
+                    }
+
+                    @Override
+                    public void onDataTrackPublished(@NonNull LocalParticipant localParticipant, @NonNull LocalDataTrackPublication localDataTrackPublication) {
+
+                    }
+
+                    @Override
+                    public void onDataTrackPublicationFailed(@NonNull LocalParticipant localParticipant, @NonNull LocalDataTrack localDataTrack, @NonNull TwilioException twilioException) {
+
+                    }
+
+                    @Override
+                    public void onNetworkQualityLevelChanged(@NonNull LocalParticipant localParticipant, @NonNull NetworkQualityLevel networkQualityLevel) {
+                        if (networkQualityLevel == NetworkQualityLevel.NETWORK_QUALITY_LEVEL_UNKNOWN ||
+                                networkQualityLevel == NetworkQualityLevel.NETWORK_QUALITY_LEVEL_ZERO) {
+                            networkQualityLevelImage.setImageResource(R.drawable.network_quality_level_0);
+                        } else if (networkQualityLevel == NetworkQualityLevel.NETWORK_QUALITY_LEVEL_ONE) {
+                            networkQualityLevelImage.setImageResource(R.drawable.network_quality_level_1);
+                        } else if (networkQualityLevel == NetworkQualityLevel.NETWORK_QUALITY_LEVEL_TWO) {
+                            networkQualityLevelImage.setImageResource(R.drawable.network_quality_level_2);
+                        } else if (networkQualityLevel == NetworkQualityLevel.NETWORK_QUALITY_LEVEL_THREE) {
+                            networkQualityLevelImage.setImageResource(R.drawable.network_quality_level_3);
+                        } else if (networkQualityLevel == NetworkQualityLevel.NETWORK_QUALITY_LEVEL_FOUR) {
+                            networkQualityLevelImage.setImageResource(R.drawable.network_quality_level_4);
+                        } else if (networkQualityLevel == NetworkQualityLevel.NETWORK_QUALITY_LEVEL_FIVE) {
+                            networkQualityLevelImage.setImageResource(R.drawable.network_quality_level_5);
+                        }
+                    }
+                });
                 videoStatusTextView.setText(String.format("Connected to %s", room.getName()));
                 setTitle(room.getName());
 
@@ -548,7 +629,7 @@ public class MultiPartyActivity extends AppCompatActivity {
             @Override
             public void onReconnecting(@NonNull Room room, @NonNull TwilioException twilioException) {
                 videoStatusTextView.setText(String.format("Reconnecting to %s", room.getName()));
-                reconnectingProgressBar.setVisibility(View.VISIBLE);
+                reconnectingProgressBar.setVisibility(VISIBLE);
             }
 
             @Override
@@ -566,6 +647,7 @@ public class MultiPartyActivity extends AppCompatActivity {
 
             @Override
             public void onDisconnected(Room room, TwilioException e) {
+                networkQualityLevelImage.setVisibility(GONE);
                 localParticipant = null;
                 videoStatusTextView.setText(String.format("Disconnected from %s", room.getName()));
                 reconnectingProgressBar.setVisibility(GONE);
@@ -573,8 +655,26 @@ public class MultiPartyActivity extends AppCompatActivity {
                 // Only reinitialize the UI if disconnect was not called from onDestroy()
                 if (!disconnectedFromOnDestroy) {
                     configureAudio(false);
-                    initializeVideoTextureViews();
+                    initializeParticipantContainers();
                     intializeUI();
+                }
+            }
+
+            @Override
+            public void onDominantSpeakerChanged(@NonNull Room room, @Nullable RemoteParticipant remoteParticipant) {
+                if (remoteParticipant == null) {
+                    if (currentDominantSpeakerImg != null) {
+                        currentDominantSpeakerImg.setVisibility(GONE);
+                    }
+                    return;
+                }
+                ParticipantView participantContainer = participantViewGroupMap.get(remoteParticipant.getSid());
+                if (participantContainer != null) {
+                    if (currentDominantSpeakerImg != null) {
+                        currentDominantSpeakerImg.setVisibility(GONE);
+                    }
+                    currentDominantSpeakerImg = participantContainer.getDominantSpeakerImg();
+                    currentDominantSpeakerImg.setVisibility(VISIBLE);
                 }
             }
 
