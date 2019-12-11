@@ -5,6 +5,7 @@ import android.graphics.ImageFormat;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
@@ -104,19 +105,13 @@ public class CameraCapturerCompat {
     private void setCameraPairs(Context context) {
         Camera2Enumerator camera2Enumerator = new Camera2Enumerator(context);
         for (String cameraId : camera2Enumerator.getDeviceNames()) {
-            if (!isPrivateImageFormatSupportedForCameraId(cameraId)) {
-                /*
-                 * This is a temporary work around for a RuntimeException that occurs on devices which contain cameras
-                 * that do not support ImageFormat.PRIVATE output formats. A long term fix is currently in development.
-                 * https://github.com/twilio/video-quickstart-android/issues/431
-                 */
-                continue;
-            }
-            if (camera2Enumerator.isFrontFacing(cameraId)) {
-                frontCameraPair = new Pair<>(CameraCapturer.CameraSource.FRONT_CAMERA, cameraId);
-            }
-            if (camera2Enumerator.isBackFacing(cameraId)) {
-                backCameraPair = new Pair<>(CameraCapturer.CameraSource.BACK_CAMERA, cameraId);
+            if (isCameraIdSupported(cameraId)) {
+                if (camera2Enumerator.isFrontFacing(cameraId)) {
+                    frontCameraPair = new Pair<>(CameraCapturer.CameraSource.FRONT_CAMERA, cameraId);
+                }
+                if (camera2Enumerator.isBackFacing(cameraId)) {
+                    backCameraPair = new Pair<>(CameraCapturer.CameraSource.BACK_CAMERA, cameraId);
+                }
             }
         }
     }
@@ -142,7 +137,8 @@ public class CameraCapturerCompat {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private boolean isPrivateImageFormatSupportedForCameraId(String cameraId) {
+    private boolean isCameraIdSupported(String cameraId) {
+        boolean isMonoChromeSupported = false;
         boolean isPrivateImageFormatSupported;
         CameraCharacteristics cameraCharacteristics;
         try {
@@ -151,9 +147,26 @@ public class CameraCapturerCompat {
             e.printStackTrace();
             return false;
         }
+        /*
+         * This is a temporary work around for a RuntimeException that occurs on devices which contain cameras
+         * that do not support ImageFormat.PRIVATE output formats. A long term fix is currently in development.
+         * https://github.com/twilio/video-quickstart-android/issues/431
+         */
         final StreamConfigurationMap streamMap =
                 cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
         isPrivateImageFormatSupported = streamMap.isOutputSupportedFor(ImageFormat.PRIVATE);
-        return isPrivateImageFormatSupported;
+
+        /*
+         * Read the color filter arrangements of the camera to filter out the ones that support
+         * SENSOR_INFO_COLOR_FILTER_ARRANGEMENT_MONO or SENSOR_INFO_COLOR_FILTER_ARRANGEMENT_NIR.
+         * Visit this link for details on supported values - https://developer.android.com/reference/android/hardware/camera2/CameraCharacteristics#SENSOR_INFO_COLOR_FILTER_ARRANGEMENT
+         */
+        final int colorFilterArrangement = cameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            isMonoChromeSupported = (colorFilterArrangement == CameraMetadata.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT_MONO
+                    || colorFilterArrangement == CameraMetadata.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT_NIR) ? true : false;
+        }
+        return isPrivateImageFormatSupported && !isMonoChromeSupported;
     }
 }
