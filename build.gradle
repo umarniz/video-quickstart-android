@@ -4,18 +4,18 @@ buildscript {
     ext.kotlin_version = '1.3.50'
     ext.versions = [
             'java': JavaVersion.VERSION_1_8,
-            'androidGradlePlugin': '3.5.1',
+            'androidGradlePlugin': '3.5.3',
             'googleServices': '3.2.1',
             'compileSdk': 29,
             'buildTools': '28.0.3',
             'minSdk': 16,
             'targetSdk': 28,
-            'supportLibrary': '26.1.0',
+            'supportLibrary': '28.0.0',
             'firebase': '10.0.1',
             'retrofit': '2.0.0-beta4',
             'okhttp': '3.6.0',
             'ion': '2.1.7',
-            'videoAndroid': '5.0.1'
+            'videoAndroid': '5.1.0'
     ]
 
     ext.getSecretProperty = { key, defaultValue ->

@@ -2,7 +2,13 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion versions.compileSdk
-    buildToolsVersion "${versions.buildTools}"
+    buildToolsVersion versions.buildTools
+
+    lintOptions {
+        warningsAsErrors true
+        // Disable UI related lint issues
+        disable "MissingApplicationIcon", "ButtonStyle"
+    }
 
     defaultConfig {
         applicationId "com.twilio.video.examples.advancedcameracapturer"
