@@ -13,9 +13,11 @@
                 android:id="@+id/dominant_speaker_img"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentBottom="true"
                 android:layout_margin="5dp"
                 android:visibility="gone"
+                android:contentDescription="@string/dominant_speaker"
                 android:src="@drawable/ic_dominant_speaker_img" />
 </com.twilio.examplemultipartyvideo.ParticipantView>

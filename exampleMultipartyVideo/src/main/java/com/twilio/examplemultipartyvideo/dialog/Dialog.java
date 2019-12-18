@@ -3,7 +3,9 @@ package com.twilio.examplemultipartyvideo.dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
+import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 
 import com.twilio.examplemultipartyvideo.R;
 
@@ -20,23 +22,15 @@ public class Dialog {
         alertDialogBuilder.setPositiveButton("Connect", callParticipantsClickListener);
         alertDialogBuilder.setNegativeButton("Cancel", cancelClickListener);
         alertDialogBuilder.setCancelable(false);
-
-        setRoomNameFieldInDialog(participantEditText, alertDialogBuilder, context);
+        setRoomNameFieldInDialog(participantEditText, alertDialogBuilder);
 
         return alertDialogBuilder.create();
     }
 
     private static void setRoomNameFieldInDialog(EditText roomNameEditText,
-                                                 AlertDialog.Builder alertDialogBuilder,
-                                                 Context context) {
+                                                 AlertDialog.Builder alertDialogBuilder) {
         roomNameEditText.setHint("room name");
-        int horizontalPadding = context.getResources().getDimensionPixelOffset(R.dimen.activity_horizontal_margin);
-        int verticalPadding = context.getResources().getDimensionPixelOffset(R.dimen.activity_vertical_margin);
-        alertDialogBuilder.setView(roomNameEditText,
-                horizontalPadding,
-                verticalPadding,
-                horizontalPadding,
-                0);
+        alertDialogBuilder.setView(roomNameEditText);
     }
 
 }

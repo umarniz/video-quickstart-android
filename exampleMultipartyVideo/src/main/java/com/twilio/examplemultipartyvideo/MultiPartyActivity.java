@@ -1,6 +1,7 @@
 package com.twilio.examplemultipartyvideo;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -217,6 +218,7 @@ public class MultiPartyActivity extends AppCompatActivity {
         return new Vp8Codec();
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onResume() {
         super.onResume();
@@ -639,8 +641,8 @@ public class MultiPartyActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onConnectFailure(Room room, TwilioException e) {
-                videoStatusTextView.setText("Failed to connect");
+            public void onConnectFailure(@NonNull Room room, @NonNull TwilioException e) {
+                videoStatusTextView.setText(R.string.connect_failed);
                 configureAudio(false);
                 intializeUI();
             }
@@ -709,6 +711,7 @@ public class MultiPartyActivity extends AppCompatActivity {
         };
     }
 
+    @SuppressLint("SetTextI18n")
     private RemoteParticipant.Listener remoteParticipantListener() {
         return new RemoteParticipant.Listener() {
             @Override
