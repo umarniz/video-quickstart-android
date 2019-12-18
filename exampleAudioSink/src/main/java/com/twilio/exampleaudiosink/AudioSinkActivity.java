@@ -43,6 +43,7 @@ public class AudioSinkActivity extends AppCompatActivity {
     private static final int MAX_PARTICIPANTS = 2;
     private static final int MIC_PERMISSION_REQUEST_CODE = 5;
     private static final String TAG = "AudioSinkActivity";
+    private static final String UNSUPPORTED_PARTICIPANT_COUNT_MSG = "This example only supports %d participants";
 
     /*
      * Audio and video tracks can be created with names. This feature is useful for categorizing
@@ -365,7 +366,7 @@ public class AudioSinkActivity extends AppCompatActivity {
 
             @Override
             public void onConnectFailure(@NonNull Room room, @NonNull TwilioException e) {
-                audioSinkStatusText.setText("Failed to connect");
+                audioSinkStatusText.setText(getString(R.string.connect_failed));
                 configureAudio(false);
                 initializeUI();
             }
@@ -432,7 +433,7 @@ public class AudioSinkActivity extends AppCompatActivity {
 
     public boolean hasNecessaryParticipants(@NonNull Room room) {
         if (room.getRemoteParticipants().size() > 1)
-            throw new RuntimeException(String.format(getString(R.string.unsupported_participant_count_exception_message), MAX_PARTICIPANTS));
+            throw new RuntimeException(String.format(UNSUPPORTED_PARTICIPANT_COUNT_MSG, MAX_PARTICIPANTS));
         return room.getRemoteParticipants().size() > 0;
     }
 

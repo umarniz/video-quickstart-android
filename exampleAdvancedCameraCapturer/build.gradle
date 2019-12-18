@@ -6,7 +6,7 @@ android {
 
     lintOptions {
         warningsAsErrors true
-        // Disable UI related lint issues
+        // Disable UI related issues
         disable "MissingApplicationIcon", "ButtonStyle"
     }
 

@@ -2,7 +2,13 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion versions.compileSdk
-    buildToolsVersion "${versions.buildTools}"
+    buildToolsVersion versions.buildTools
+
+    lintOptions {
+        warningsAsErrors true
+        // Disable UI related issues
+        disable "MissingApplicationIcon"
+    }
 
     defaultConfig {
         applicationId "com.twilio.exampleaudiosink"

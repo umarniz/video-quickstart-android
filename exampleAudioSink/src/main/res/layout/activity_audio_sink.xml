@@ -27,7 +27,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_weight="0.5"
-            android:src="@android:drawable/ic_btn_speak_now" />
+            android:src="@android:drawable/ic_btn_speak_now"
+            android:contentDescription="@string/toogle_audio_sink"/>
 
         <ImageButton
             android:id="@+id/toggle_play_file"
@@ -35,6 +36,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_weight="0.5"
+            android:contentDescription="@string/play_file"
             android:src="@android:drawable/ic_media_play" />
     </LinearLayout>
 
@@ -43,7 +45,7 @@
         android:id="@+id/connect_action_fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="right"
+        android:layout_gravity="end"
         android:layout_margin="@dimen/fab_margin"
         android:src="@android:drawable/sym_call_outgoing"
         app:fabSize="normal" />
