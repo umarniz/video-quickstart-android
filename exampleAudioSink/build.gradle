@@ -6,8 +6,6 @@ android {
 
     lintOptions {
         warningsAsErrors true
-        // Disable UI related issues
-        disable "MissingApplicationIcon"
     }
 
     defaultConfig {
