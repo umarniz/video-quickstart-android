@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.twilio.video.examples.customrenderer">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.twilio.video.examples.customrenderer">
 
     <uses-feature android:name="android.hardware.camera"/>
     <uses-feature android:name="android.hardware.camera.autofocus"/>
@@ -16,8 +17,9 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 
     <application
-        android:allowBackup="true"
-        android:supportsRtl="true">
+        android:allowBackup="false"
+        android:supportsRtl="true"
+        tools:ignore="GoogleAppIndexingWarning">
 
         <activity
             android:name=".CustomRendererVideoActivity"
