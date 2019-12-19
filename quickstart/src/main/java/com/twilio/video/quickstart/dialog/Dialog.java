@@ -21,22 +21,15 @@ public class Dialog {
         alertDialogBuilder.setNegativeButton("Cancel", cancelClickListener);
         alertDialogBuilder.setCancelable(false);
 
-        setRoomNameFieldInDialog(participantEditText, alertDialogBuilder, context);
+        setRoomNameFieldInDialog(participantEditText, alertDialogBuilder);
 
         return alertDialogBuilder.create();
     }
 
     private static void setRoomNameFieldInDialog(EditText roomNameEditText,
-                                                 AlertDialog.Builder alertDialogBuilder,
-                                                 Context context) {
+                                                 AlertDialog.Builder alertDialogBuilder) {
         roomNameEditText.setHint("room name");
-        int horizontalPadding = context.getResources().getDimensionPixelOffset(R.dimen.activity_horizontal_margin);
-        int verticalPadding = context.getResources().getDimensionPixelOffset(R.dimen.activity_vertical_margin);
-        alertDialogBuilder.setView(roomNameEditText,
-                horizontalPadding,
-                verticalPadding,
-                horizontalPadding,
-                0);
+        alertDialogBuilder.setView(roomNameEditText);
     }
 
 }

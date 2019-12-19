@@ -1,6 +1,7 @@
 package com.twilio.video.quickstart.activity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -142,6 +143,8 @@ public class VideoActivity extends AppCompatActivity {
     private AlertDialog connectDialog;
     private AudioManager audioManager;
     private String remoteParticipantIdentity;
+    private MenuItem turnSpeakerOnMenuItem;
+    private MenuItem turnSpeakerOffMenuItem;
 
     private int previousAudioMode;
     private boolean previousMicrophoneMute;
@@ -149,6 +152,7 @@ public class VideoActivity extends AppCompatActivity {
     private boolean disconnectedFromOnDestroy;
     private boolean isSpeakerPhoneEnabled = true;
     private boolean enableAutomaticSubscription;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -201,6 +205,8 @@ public class VideoActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_video_activity, menu);
+        turnSpeakerOnMenuItem = menu.findItem(R.id.menu_turn_speaker_on);
+        turnSpeakerOffMenuItem = menu.findItem(R.id.menu_turn_speaker_off);
         return true;
     }
 
@@ -210,16 +216,15 @@ public class VideoActivity extends AppCompatActivity {
             case R.id.menu_settings:
                 startActivity(new Intent(this, SettingsActivity.class));
                 return true;
-            case R.id.speaker_menu_item:
-                if (audioManager.isSpeakerphoneOn()) {
-                    audioManager.setSpeakerphoneOn(false);
-                    item.setIcon(ic_phonelink_ring_white_24dp);
-                    isSpeakerPhoneEnabled = false;
-                } else {
-                    audioManager.setSpeakerphoneOn(true);
-                    item.setIcon(ic_volume_up_white_24dp);
-                    isSpeakerPhoneEnabled = true;
-                }
+            case R.id.menu_turn_speaker_on:
+            case R.id.menu_turn_speaker_off:
+                boolean expectedSpeakerPhoneState = !audioManager.isSpeakerphoneOn();
+
+                audioManager.setSpeakerphoneOn(expectedSpeakerPhoneState);
+                turnSpeakerOffMenuItem.setVisible(expectedSpeakerPhoneState);
+                turnSpeakerOnMenuItem.setVisible(!expectedSpeakerPhoneState);
+                isSpeakerPhoneEnabled = expectedSpeakerPhoneState;
+
                 return true;
             default:
                 return false;
@@ -248,6 +253,7 @@ public class VideoActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onResume() {
         super.onResume();
@@ -566,6 +572,7 @@ public class VideoActivity extends AppCompatActivity {
     /*
      * Called when remote participant joins the room
      */
+    @SuppressLint("SetTextI18n")
     private void addRemoteParticipant(RemoteParticipant remoteParticipant) {
         /*
          * This app only displays video for one additional participant per Room
@@ -624,6 +631,7 @@ public class VideoActivity extends AppCompatActivity {
     /*
      * Called when remote participant leaves the room
      */
+    @SuppressLint("SetTextI18n")
     private void removeRemoteParticipant(RemoteParticipant remoteParticipant) {
         videoStatusTextView.setText("RemoteParticipant " + remoteParticipant.getIdentity() +
                 " left.");
@@ -668,6 +676,7 @@ public class VideoActivity extends AppCompatActivity {
     /*
      * Room events listener
      */
+    @SuppressLint("SetTextI18n")
     private Room.Listener roomListener() {
         return new Room.Listener() {
             @Override
@@ -746,6 +755,7 @@ public class VideoActivity extends AppCompatActivity {
         };
     }
 
+    @SuppressLint("SetTextI18n")
     private RemoteParticipant.Listener remoteParticipantListener() {
         return new RemoteParticipant.Listener() {
             @Override
