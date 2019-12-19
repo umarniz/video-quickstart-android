@@ -37,6 +37,55 @@ jobs:
       # Save cache
       - save-cache: *save-cache-gradle
 
+  lint:
+    <<: *build-defaults
+    resource_class: large
+    steps:
+      # Setup
+      - checkout
+      - attach_workspace:
+          at: *workspace
+      - restore-cache: *restore-cache-gradle
+
+      # Build app
+      - run:
+          name: Lint
+          command: ./gradlew -q lint
+
+            - store_artifacts:
+                path: exampleAdvancedCameraCapturer/build/reports/lint-results.html
+                prefix: exampleAdvancedCameraCapturer
+            - store_artifacts:
+                path: exampleAudioSink/app/build/reports/lint-results.html
+                prefix: exampleAudioSink
+            - store_artifacts:
+                path: exampleCustomVideoCapturer/build/reports/lint-results.html
+                prefix: exampleCustomVideoCapturer
+            - store_artifacts:
+                path: exampleCustomVideoRenderer/build/reports/lint-results.html
+                prefix: exampleCustomVideoRenderer
+            - store_artifacts:
+                path: exampleDataTrack/build/reports/lint-results.html
+                prefix: exampleDataTrack
+            - store_artifacts:
+                path: exampleMultipartyVideo/build/reports/lint-results.html
+                prefix: exampleMultipartyVideo
+            - store_artifacts:
+                path: exampleScreenCapturer/build/reports/lint-results.html
+                prefix: exampleScreenCapturer
+            - store_artifacts:
+                path: exampleVideoInvite/build/reports/lint-results.html
+                prefix: exampleVideoInvite
+            - store_artifacts:
+                path: quickstart/build/reports/lint-results.html
+                prefix: quickstart
+            - store_artifacts:
+                path: quickstartKotlin/build/reports/lint-results.html
+                prefix: quickstartKotlin
+
+      # Save cache
+      - save-cache: *save-cache-gradle
+
   build-exampleAdvancedCameraCapturer:
     <<: *build-defaults
     resource_class: large
@@ -226,6 +275,11 @@ workflows:
     jobs:
       # Setup
       - setup-workspace
+
+      # Hygiene
+      - lint:
+          requires:
+            - setup-workspace
 
       # Build
       - build-exampleAdvancedCameraCapturer:
