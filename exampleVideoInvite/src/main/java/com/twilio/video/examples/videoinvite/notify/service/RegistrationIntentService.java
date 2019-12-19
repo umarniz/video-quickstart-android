@@ -127,7 +127,7 @@ public class RegistrationIntentService extends IntentService {
                     .remove(IDENTITY)
                     .remove(ENDPOINT)
                     .remove(ADDRESS)
-                    .commit();
+                    .apply();
 
             final Binding binding = new Binding(identity,
                     newEndpoint,
@@ -143,7 +143,7 @@ public class RegistrationIntentService extends IntentService {
                                 .putString(IDENTITY, identity)
                                 .putString(ENDPOINT, newEndpoint)
                                 .putString(ADDRESS, newAddress)
-                                .commit();
+                                .apply();
                         sendRegistrationSuccess(identity, token);
                     } else {
                         String message = "Binding registration failed: " + response.code() + " " + response.message();

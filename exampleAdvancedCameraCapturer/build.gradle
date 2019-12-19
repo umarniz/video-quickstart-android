@@ -7,7 +7,7 @@ android {
     lintOptions {
         warningsAsErrors true
         // Disable UI related issues
-        disable "MissingApplicationIcon", "ButtonStyle"
+        disable "MissingApplicationIcon", "ButtonStyle", "GradleDependency"
     }
 
     defaultConfig {

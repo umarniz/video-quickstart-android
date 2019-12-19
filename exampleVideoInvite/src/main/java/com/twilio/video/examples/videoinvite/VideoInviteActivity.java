@@ -1,6 +1,7 @@
 package com.twilio.video.examples.videoinvite;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -153,6 +154,8 @@ public class VideoInviteActivity extends AppCompatActivity {
     private android.support.v7.app.AlertDialog alertDialog;
     private AudioManager audioManager;
     private String remoteParticipantIdentity;
+    private MenuItem turnSpeakerOnMenuItem;
+    private MenuItem turnSpeakerOffMenuItem;
 
     private int previousAudioMode;
     private VideoRenderer localVideoView;
@@ -270,7 +273,7 @@ public class VideoInviteActivity extends AppCompatActivity {
             identity = intent.getStringExtra(REGISTRATION_IDENTITY);
             token = intent.getStringExtra(REGISTRATION_TOKEN);
             identityTextView.setText(identity);
-            statusTextView.setText("Registered");
+            statusTextView.setText(R.string.registered);
             intializeUI();
             if (cachedVideoNotificationIntent != null) {
                 handleVideoNotificationIntent(cachedVideoNotificationIntent);
@@ -338,6 +341,7 @@ public class VideoInviteActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected  void onResume() {
         super.onResume();
@@ -427,21 +431,23 @@ public class VideoInviteActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu, menu);
+        turnSpeakerOnMenuItem = menu.findItem(R.id.menu_turn_speaker_on);
+        turnSpeakerOffMenuItem = menu.findItem(R.id.menu_turn_speaker_off);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.speaker_menu_item:
-                if (audioManager.isSpeakerphoneOn()) {
-                    audioManager.setSpeakerphoneOn(false);
-                    item.setIcon(ic_phonelink_ring_white_24dp);
-                } else {
-                    audioManager.setSpeakerphoneOn(true);
-                    item.setIcon(ic_volume_up_white_24dp);
-                }
-                break;
+            case R.id.menu_turn_speaker_on:
+            case R.id.menu_turn_speaker_off:
+                boolean expectedSpeakerPhoneState = !audioManager.isSpeakerphoneOn();
+
+                audioManager.setSpeakerphoneOn(expectedSpeakerPhoneState);
+                turnSpeakerOffMenuItem.setVisible(expectedSpeakerPhoneState);
+                turnSpeakerOnMenuItem.setVisible(!expectedSpeakerPhoneState);
+
+                return true;
         }
         return true;
     }
@@ -587,6 +593,7 @@ public class VideoInviteActivity extends AppCompatActivity {
     /*
      * Called when remote participant joins the room
      */
+    @SuppressLint("SetTextI18n")
     private void addRemoteParticipant(RemoteParticipant remoteParticipant) {
         /*
          * This app only displays video for one additional participant per Room
@@ -647,6 +654,7 @@ public class VideoInviteActivity extends AppCompatActivity {
     /*
      * Called when participant leaves the room
      */
+    @SuppressLint("SetTextI18n")
     private void removeParticipant(RemoteParticipant remoteParticipant) {
         statusTextView.setText("Participant "+remoteParticipant.getIdentity()+ " left.");
         if (!remoteParticipant.getIdentity().equals(remoteParticipantIdentity)) {
@@ -688,6 +696,7 @@ public class VideoInviteActivity extends AppCompatActivity {
     /*
      * Room events listener
      */
+    @SuppressLint("SetTextI18n")
     private Room.Listener roomListener() {
         return new Room.Listener() {
             @Override
@@ -763,6 +772,7 @@ public class VideoInviteActivity extends AppCompatActivity {
         };
     }
 
+    @SuppressLint("SetTextI18n")
     private RemoteParticipant.Listener mediaListener() {
         return new RemoteParticipant.Listener() {
             @Override
