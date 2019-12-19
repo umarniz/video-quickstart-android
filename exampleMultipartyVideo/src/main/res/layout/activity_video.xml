@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context=".RoomActivity">
+    tools:context=".MultiPartyActivity">
 
     <include layout="@layout/content_video" />
 
@@ -24,6 +24,7 @@
             android:layout_gravity="center"
             app:fabSize="mini"
             android:layout_marginBottom="@dimen/fab_margin"
+            android:contentDescription="@string/switch_camera"
             android:src="@drawable/ic_switch_camera_white_24dp" />
 
         <android.support.design.widget.FloatingActionButton
@@ -59,7 +60,7 @@
         android:layout_height="wrap_content"
         android:textColor="@android:color/black"
         android:textSize="24sp"
-        android:text="Status:"
+        android:text="@string/room_status"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
 
@@ -70,6 +71,7 @@
         android:src="@drawable/network_quality_level_0"
         android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
+        android:contentDescription="@string/network_quality_level"
         app:layout_constraintTop_toBottomOf="@id/videoStatusText"/>
 
 </android.support.constraint.ConstraintLayout>

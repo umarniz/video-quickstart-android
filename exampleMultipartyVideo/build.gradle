@@ -2,7 +2,12 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion versions.compileSdk
-    buildToolsVersion "${versions.buildTools}"
+    buildToolsVersion versions.buildTools
+
+    lintOptions {
+        warningsAsErrors true
+        disable "IconMissingDensityFolder", "GradleDependency"
+    }
 
     defaultConfig {
         applicationId "com.twilio.examplemultipartyvideo"

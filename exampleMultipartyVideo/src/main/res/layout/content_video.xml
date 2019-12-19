@@ -1,59 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/video_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     tools:context=".MultiPartyActivity">
 
-    <LinearLayout
-        android:id="@+id/video_container_top"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="0.5"
-        android:orientation="horizontal">
-
-        <include
-            layout="@layout/participant_container_layout"
-            android:id="@+id/local_participant_container"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0.5" />
-
-        <include
-            layout="@layout/participant_container_layout"
-            android:id="@+id/top_right_container"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0.5" />
-    </LinearLayout>
+    <include
+        android:id="@+id/top_right_container"
+        layout="@layout/participant_container_layout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_right_container"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/local_participant_container"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ProgressBar
         android:id="@+id/reconnecting_progress_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:visibility="gone" />
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <LinearLayout
-        android:id="@+id/video_container_bottom"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="0.5"
-        android:orientation="horizontal">
+    <include
+        android:id="@+id/local_participant_container"
+        layout="@layout/participant_container_layout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_left_container"
+        app:layout_constraintEnd_toStartOf="@id/top_right_container"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <include
-            android:id="@+id/bottom_left_container"
-            layout="@layout/participant_container_layout"
-            android:layout_weight="0.5"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"/>
+    <include
+        android:id="@+id/bottom_right_container"
+        layout="@layout/participant_container_layout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/bottom_left_container"
+        app:layout_constraintTop_toBottomOf="@id/top_right_container" />
 
-        <include
-            layout="@layout/participant_container_layout"
-            android:id="@+id/bottom_right_container"
-            android:layout_weight="0.5"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"/>
-    </LinearLayout>
-</LinearLayout>
+    <include
+        android:id="@+id/bottom_left_container"
+        layout="@layout/participant_container_layout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/bottom_right_container"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/local_participant_container" />
+</android.support.constraint.ConstraintLayout>

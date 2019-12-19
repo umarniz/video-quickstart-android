@@ -1,5 +1,6 @@
 package com.twilio.video.examples.datatrack;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -143,6 +144,7 @@ public class CollaborativeDrawingView extends View {
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         // Only handle touch events when enabled

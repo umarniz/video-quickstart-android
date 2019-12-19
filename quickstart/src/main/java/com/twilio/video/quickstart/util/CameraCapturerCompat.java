@@ -2,7 +2,6 @@ package com.twilio.video.quickstart.util;
 
 import android.content.Context;
 import android.graphics.ImageFormat;
-import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;

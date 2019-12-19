@@ -33,46 +33,40 @@
             android:fitsSystemWindows="true"
             android:minHeight="?attr/actionBarSize" />
 
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:padding="8dp">
+            android:layout_height="wrap_content"
+            android:descendantFocusability="beforeDescendants"
+            android:padding="8dp"
+            android:focusableInTouchMode="true">
 
-            <RelativeLayout
+            <Button
+                android:id="@+id/connect_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentTop="true"
+                android:layout_centerInParent="true"
+                android:text="@string/connect"
+                android:enabled="false"/>
+
+            <EditText
+                tools:ignore="Autofill"
+                android:id="@+id/room_edit_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:descendantFocusability="beforeDescendants"
-                android:focusableInTouchMode="true">
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_centerInParent="true"
+                android:layout_toLeftOf="@id/connect_button"
+                android:layout_toStartOf="@id/connect_button"
+                android:hint="@string/room"
+                android:inputType="textAutoComplete"
+                android:maxLines="1" />
 
-                <Button
-                    android:id="@+id/connect_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_alignParentRight="true"
-                    android:layout_alignParentTop="true"
-                    android:layout_centerInParent="true"
-                    android:text="@string/connect"
-                    android:enabled="false"/>
-
-                <EditText
-                    android:id="@+id/room_edit_text"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentStart="true"
-                    android:layout_alignParentTop="true"
-                    android:layout_centerInParent="true"
-                    android:layout_toLeftOf="@id/connect_button"
-                    android:layout_toStartOf="@id/connect_button"
-                    android:hint="@string/room"
-                    android:inputType="textAutoComplete"
-                    android:maxLines="1" />
-
-            </RelativeLayout>
-
-        </LinearLayout>
+        </RelativeLayout>
 
     </android.support.design.widget.AppBarLayout>
 </android.support.design.widget.CoordinatorLayout>
