@@ -47,7 +47,6 @@ jobs:
           at: *workspace
       - restore-cache: *restore-cache-gradle
 
-      # Build app
       - run:
           name: Lint
           command: ./gradlew -q lint
