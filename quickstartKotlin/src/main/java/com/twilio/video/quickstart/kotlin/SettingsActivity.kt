@@ -10,9 +10,8 @@ import android.support.v7.preference.Preference
 import android.support.v7.preference.PreferenceFragmentCompat
 import android.view.MenuItem
 import com.twilio.video.*
-import org.webrtc.MediaCodecVideoDecoder
-import org.webrtc.MediaCodecVideoEncoder
-import java.util.*
+import tvi.webrtc.MediaCodecVideoDecoder
+import tvi.webrtc.MediaCodecVideoEncoder
 
 class SettingsActivity : AppCompatActivity() {
     companion object {

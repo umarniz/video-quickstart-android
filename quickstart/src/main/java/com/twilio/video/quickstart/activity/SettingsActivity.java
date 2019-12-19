@@ -8,7 +8,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.EditTextPreference;
 import android.support.v7.preference.ListPreference;
-import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.view.MenuItem;
 
@@ -24,8 +23,8 @@ import com.twilio.video.Vp8Codec;
 import com.twilio.video.Vp9Codec;
 import com.twilio.video.quickstart.R;
 
-import org.webrtc.MediaCodecVideoDecoder;
-import org.webrtc.MediaCodecVideoEncoder;
+import tvi.webrtc.MediaCodecVideoDecoder;
+import tvi.webrtc.MediaCodecVideoEncoder;
 
 import java.util.ArrayList;
 import java.util.Collections;

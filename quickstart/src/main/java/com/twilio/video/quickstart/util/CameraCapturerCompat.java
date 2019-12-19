@@ -8,6 +8,7 @@ import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.util.Pair;
@@ -16,7 +17,7 @@ import com.twilio.video.Camera2Capturer;
 import com.twilio.video.CameraCapturer;
 import com.twilio.video.VideoCapturer;
 
-import org.webrtc.Camera2Enumerator;
+import tvi.webrtc.Camera2Enumerator;
 
 /*
  * Simple wrapper class that uses Camera2Capturer with supported devices.
@@ -28,35 +29,32 @@ public class CameraCapturerCompat {
     private Camera2Capturer camera2Capturer;
     private Pair<CameraCapturer.CameraSource, String> frontCameraPair;
     private Pair<CameraCapturer.CameraSource, String> backCameraPair;
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private CameraManager cameraManager;
-    private final Camera2Capturer.Listener camera2Listener = new Camera2Capturer.Listener() {
-        @Override
-        public void onFirstFrameAvailable() {
-            Log.i(TAG, "onFirstFrameAvailable");
-        }
 
-        @Override
-        public void onCameraSwitched(String newCameraId) {
-            Log.i(TAG, "onCameraSwitched: newCameraId = " + newCameraId);
-        }
-
-        @Override
-        public void onError(Camera2Capturer.Exception camera2CapturerException) {
-            Log.e(TAG, camera2CapturerException.getMessage());
-        }
-    };
-
-    public CameraCapturerCompat(Context context,
-                                CameraCapturer.CameraSource cameraSource) {
+    public CameraCapturerCompat(Context context, CameraCapturer.CameraSource cameraSource) {
         if (Camera2Capturer.isSupported(context) && isLollipopApiSupported()) {
-            cameraManager =
-                    (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+            cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
             setCameraPairs(context);
-            camera2Capturer = new Camera2Capturer(context,
-                    getCameraId(cameraSource),
-                    camera2Listener);
+            Camera2Capturer.Listener camera2Listener =
+                    new Camera2Capturer.Listener() {
+                        @Override
+                        public void onFirstFrameAvailable() {
+                            Log.i(TAG,"onFirstFrameAvailable");
+                        }
 
+                        @Override
+                        public void onCameraSwitched(@NonNull String newCameraId) {
+                            Log.i(TAG, "onCameraSwitched: newCameraId = " + newCameraId);
+                        }
+
+                        @Override
+                        public void onError(
+                                @NonNull Camera2Capturer.Exception camera2CapturerException) {
+                            Log.e(TAG, camera2CapturerException.toString());
+                        }
+                    };
+            camera2Capturer =
+                    new Camera2Capturer(context, getCameraId(cameraSource), camera2Listener);
         } else {
             camera1Capturer = new CameraCapturer(context, cameraSource);
         }
@@ -74,8 +72,8 @@ public class CameraCapturerCompat {
         if (usingCamera1()) {
             camera1Capturer.switchCamera();
         } else {
-            CameraCapturer.CameraSource cameraSource = getCameraSource(camera2Capturer
-                    .getCameraId());
+            CameraCapturer.CameraSource cameraSource =
+                    getCameraSource(camera2Capturer.getCameraId());
 
             if (cameraSource == CameraCapturer.CameraSource.FRONT_CAMERA) {
                 camera2Capturer.switchCamera(backCameraPair.second);
@@ -87,7 +85,11 @@ public class CameraCapturerCompat {
 
     /*
      * This method is required because this class is not an implementation of VideoCapturer due to
-     * a shortcoming in the Video Android SDK.
+     * a shortcoming in VideoCapturerDelegate where only instances of CameraCapturer,
+     * Camera2Capturer, and ScreenCapturer are initialized correctly with a SurfaceTextureHelper.
+     * Because capturing to a texture is not a part of the official public API we must expose
+     * this method instead of writing a custom capturer so that camera capturers are properly
+     * initialized.
      */
     public VideoCapturer getVideoCapturer() {
         if (usingCamera1()) {
@@ -107,7 +109,8 @@ public class CameraCapturerCompat {
         for (String cameraId : camera2Enumerator.getDeviceNames()) {
             if (isCameraIdSupported(cameraId)) {
                 if (camera2Enumerator.isFrontFacing(cameraId)) {
-                    frontCameraPair = new Pair<>(CameraCapturer.CameraSource.FRONT_CAMERA, cameraId);
+                    frontCameraPair =
+                            new Pair<>(CameraCapturer.CameraSource.FRONT_CAMERA, cameraId);
                 }
                 if (camera2Enumerator.isBackFacing(cameraId)) {
                     backCameraPair = new Pair<>(CameraCapturer.CameraSource.BACK_CAMERA, cameraId);
@@ -139,11 +142,11 @@ public class CameraCapturerCompat {
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private boolean isCameraIdSupported(String cameraId) {
         boolean isMonoChromeSupported = false;
-        boolean isPrivateImageFormatSupported;
+        boolean isPrivateImageFormatSupported = false;
         CameraCharacteristics cameraCharacteristics;
         try {
             cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId);
-        } catch (CameraAccessException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
@@ -154,18 +157,28 @@ public class CameraCapturerCompat {
          */
         final StreamConfigurationMap streamMap =
                 cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-        isPrivateImageFormatSupported = streamMap.isOutputSupportedFor(ImageFormat.PRIVATE);
+
+        if (streamMap != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            isPrivateImageFormatSupported = streamMap.isOutputSupportedFor(ImageFormat.PRIVATE);
+        }
 
         /*
          * Read the color filter arrangements of the camera to filter out the ones that support
          * SENSOR_INFO_COLOR_FILTER_ARRANGEMENT_MONO or SENSOR_INFO_COLOR_FILTER_ARRANGEMENT_NIR.
          * Visit this link for details on supported values - https://developer.android.com/reference/android/hardware/camera2/CameraCharacteristics#SENSOR_INFO_COLOR_FILTER_ARRANGEMENT
          */
-        final int colorFilterArrangement = cameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT);
+        Integer colorFilterArrangement =
+                cameraCharacteristics.get(
+                        CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT);
+        // Normalize the color filter arrangement
+        colorFilterArrangement = colorFilterArrangement == null ? -1 : colorFilterArrangement;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            isMonoChromeSupported = (colorFilterArrangement == CameraMetadata.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT_MONO
-                    || colorFilterArrangement == CameraMetadata.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT_NIR) ? true : false;
+            isMonoChromeSupported =
+                    colorFilterArrangement
+                            == CameraMetadata.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT_MONO
+                            || colorFilterArrangement
+                            == CameraMetadata.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT_NIR;
         }
         return isPrivateImageFormatSupported && !isMonoChromeSupported;
     }

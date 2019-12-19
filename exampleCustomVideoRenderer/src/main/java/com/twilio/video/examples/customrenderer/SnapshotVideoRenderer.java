@@ -12,8 +12,8 @@ import android.widget.ImageView;
 import com.twilio.video.I420Frame;
 import com.twilio.video.VideoRenderer;
 
-import org.webrtc.RendererCommon;
-import org.webrtc.YuvConverter;
+import tvi.webrtc.RendererCommon;
+import tvi.webrtc.YuvConverter;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
