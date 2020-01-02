@@ -563,15 +563,18 @@ class VideoActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_settings -> startActivity(Intent(this, SettingsActivity::class.java))
-            R.id.menu_turn_speaker_on, R.id.menu_turn_speaker_off -> {
-                val expectedSpeakerPhoneState = !audioManager.isSpeakerphoneOn
+            R.id.menu_turn_speaker_on -> {
+                audioManager.isSpeakerphoneOn = true
+                turnSpeakerOffMenuItem.isVisible = true
+                turnSpeakerOnMenuItem.isVisible = false
+                isSpeakerPhoneEnabled = true
+            }
 
-                audioManager.isSpeakerphoneOn = expectedSpeakerPhoneState
-                turnSpeakerOffMenuItem.isVisible = expectedSpeakerPhoneState
-                turnSpeakerOnMenuItem.isVisible = !expectedSpeakerPhoneState
-                isSpeakerPhoneEnabled = expectedSpeakerPhoneState
-
-                return true
+            R.id.menu_turn_speaker_off -> {
+                audioManager.isSpeakerphoneOn = false
+                turnSpeakerOffMenuItem.isVisible = false
+                turnSpeakerOnMenuItem.isVisible = true
+                isSpeakerPhoneEnabled = false
             }
         }
         return true
