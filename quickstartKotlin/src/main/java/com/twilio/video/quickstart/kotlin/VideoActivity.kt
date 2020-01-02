@@ -24,7 +24,34 @@ import android.view.View
 import android.widget.EditText
 import android.widget.Toast
 import com.koushikdutta.ion.Ion
-import com.twilio.video.*
+import com.twilio.video.AudioCodec
+import com.twilio.video.CameraCapturer
+import com.twilio.video.ConnectOptions
+import com.twilio.video.EncodingParameters
+import com.twilio.video.G722Codec
+import com.twilio.video.H264Codec
+import com.twilio.video.IsacCodec
+import com.twilio.video.LocalAudioTrack
+import com.twilio.video.LocalParticipant
+import com.twilio.video.LocalVideoTrack
+import com.twilio.video.OpusCodec
+import com.twilio.video.PcmaCodec
+import com.twilio.video.PcmuCodec
+import com.twilio.video.RemoteAudioTrack
+import com.twilio.video.RemoteAudioTrackPublication
+import com.twilio.video.RemoteDataTrack
+import com.twilio.video.RemoteDataTrackPublication
+import com.twilio.video.RemoteParticipant
+import com.twilio.video.RemoteVideoTrack
+import com.twilio.video.RemoteVideoTrackPublication
+import com.twilio.video.Room
+import com.twilio.video.TwilioException
+import com.twilio.video.Video
+import com.twilio.video.VideoCodec
+import com.twilio.video.VideoRenderer
+import com.twilio.video.VideoTrack
+import com.twilio.video.Vp8Codec
+import com.twilio.video.Vp9Codec
 import kotlinx.android.synthetic.main.activity_video.*
 import kotlinx.android.synthetic.main.content_video.*
 import java.util.*
@@ -390,6 +417,8 @@ class VideoActivity : AppCompatActivity() {
     private lateinit var localVideoView: VideoRenderer
     private var disconnectedFromOnDestroy = false
     private var isSpeakerPhoneEnabled = true
+    private lateinit var turnSpeakerOnMenuItem: MenuItem
+    private lateinit var turnSpeakerOffMenuItem: MenuItem
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -526,20 +555,23 @@ class VideoActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater = menuInflater
         inflater.inflate(R.menu.menu, menu)
+        turnSpeakerOnMenuItem = menu.findItem(R.id.menu_turn_speaker_on)
+        turnSpeakerOffMenuItem = menu.findItem(R.id.menu_turn_speaker_off)
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_settings -> startActivity(Intent(this, SettingsActivity::class.java))
-            R.id.speaker_menu_item -> if (audioManager.isSpeakerphoneOn) {
-                audioManager.isSpeakerphoneOn = false
-                item.setIcon(R.drawable.ic_phonelink_ring_white_24dp)
-                isSpeakerPhoneEnabled = false
-            } else {
-                audioManager.isSpeakerphoneOn = true
-                item.setIcon(R.drawable.ic_volume_up_white_24dp)
-                isSpeakerPhoneEnabled = true
+            R.id.menu_turn_speaker_on, R.id.menu_turn_speaker_off -> {
+                val expectedSpeakerPhoneState = !audioManager.isSpeakerphoneOn
+
+                audioManager.isSpeakerphoneOn = expectedSpeakerPhoneState
+                turnSpeakerOffMenuItem.isVisible = expectedSpeakerPhoneState
+                turnSpeakerOnMenuItem.isVisible = !expectedSpeakerPhoneState
+                isSpeakerPhoneEnabled = expectedSpeakerPhoneState
+
+                return true
             }
         }
         return true
