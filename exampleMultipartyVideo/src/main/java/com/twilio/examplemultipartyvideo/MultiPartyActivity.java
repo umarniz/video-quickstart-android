@@ -34,7 +34,6 @@ import com.twilio.video.AudioCodec;
 import com.twilio.video.CameraCapturer;
 import com.twilio.video.CameraCapturer.CameraSource;
 import com.twilio.video.ConnectOptions;
-import com.twilio.video.EncodingParameters;
 import com.twilio.video.LocalAudioTrack;
 import com.twilio.video.LocalAudioTrackPublication;
 import com.twilio.video.LocalDataTrack;
@@ -42,7 +41,9 @@ import com.twilio.video.LocalDataTrackPublication;
 import com.twilio.video.LocalParticipant;
 import com.twilio.video.LocalVideoTrack;
 import com.twilio.video.LocalVideoTrackPublication;
+import com.twilio.video.NetworkQualityConfiguration;
 import com.twilio.video.NetworkQualityLevel;
+import com.twilio.video.NetworkQualityVerbosity;
 import com.twilio.video.OpusCodec;
 import com.twilio.video.RemoteAudioTrack;
 import com.twilio.video.RemoteAudioTrackPublication;
@@ -117,7 +118,6 @@ public class MultiPartyActivity extends AppCompatActivity {
     /*
      * Android application UI elements
      */
-    private TextView videoStatusTextView;
     private CameraCapturer cameraCapturerCompat;
     private LocalAudioTrack localAudioTrack;
     private LocalVideoTrack localVideoTrack;
@@ -129,7 +129,6 @@ public class MultiPartyActivity extends AppCompatActivity {
     private AlertDialog connectDialog;
     private AudioManager audioManager;
     private String remoteParticipantIdentity;
-    private ImageView networkQualityLevelImage;
 
     private int previousAudioMode;
     private boolean previousMicrophoneMute;
@@ -139,6 +138,7 @@ public class MultiPartyActivity extends AppCompatActivity {
     private Stack<ParticipantView> availableParticipantContainers = new Stack<>();
     private Map<String, ParticipantView> participantViewGroupMap = new HashMap<>();
     private ImageView currentDominantSpeakerImg;
+    private ImageView localParticipantNetworkQualityLevelImageView;
     private VideoTextureView localVideoTextureView;
 
     @Override
@@ -146,14 +146,12 @@ public class MultiPartyActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video);
 
-        videoStatusTextView = findViewById(R.id.videoStatusText);
         reconnectingProgressBar = findViewById(R.id.reconnecting_progress_bar);
 
         connectActionFab = findViewById(R.id.connect_action_fab);
         switchCameraActionFab = findViewById(R.id.switch_camera_action_fab);
         localVideoActionFab = findViewById(R.id.local_video_action_fab);
         muteActionFab = findViewById(R.id.mute_action_fab);
-        networkQualityLevelImage = findViewById(R.id.network_quality_level);
 
         initializeParticipantContainers();
         /*
@@ -255,7 +253,6 @@ public class MultiPartyActivity extends AppCompatActivity {
             reconnectingProgressBar.setVisibility((room.getState() != Room.State.RECONNECTING) ?
                     GONE :
                     VISIBLE);
-            videoStatusTextView.setText("Connected to " + room.getName());
 
             if (room.getDominantSpeaker() != null) {
                 currentDominantSpeakerImg.setVisibility(VISIBLE);
@@ -383,6 +380,14 @@ public class MultiPartyActivity extends AppCompatActivity {
                 .roomName(roomName);
 
         /*
+         * Enable the Network Quality API for both local and remote participants
+         */
+        NetworkQualityConfiguration networkQualityConfiguration =
+                new NetworkQualityConfiguration(NetworkQualityVerbosity.NETWORK_QUALITY_VERBOSITY_MINIMAL,
+                        NetworkQualityVerbosity.NETWORK_QUALITY_VERBOSITY_MINIMAL);
+        connectOptionsBuilder.networkQualityConfiguration(networkQualityConfiguration);
+
+        /*
          * Add local audio track to connect options to share with participants.
          */
         if (localAudioTrack != null) {
@@ -447,6 +452,7 @@ public class MultiPartyActivity extends AppCompatActivity {
 
     private void initializeParticipantContainers() {
         ParticipantView localParticipantContainer = findViewById(R.id.local_participant_container);
+        localParticipantNetworkQualityLevelImageView = localParticipantContainer.getNetworkQualityLevelImageView();
         localVideoTextureView = localParticipantContainer.getVideoView();
         localVideoTextureView.setMirror(true);
 
@@ -483,7 +489,6 @@ public class MultiPartyActivity extends AppCompatActivity {
      */
     private void addRemoteParticipant(RemoteParticipant remoteParticipant) {
         remoteParticipantIdentity = remoteParticipant.getIdentity();
-        videoStatusTextView.setText(String.format("RemoteParticipant %s joined", remoteParticipantIdentity));
 
         /*
          * Add remote participant renderer
@@ -526,7 +531,6 @@ public class MultiPartyActivity extends AppCompatActivity {
      * Called when remote participant leaves the room
      */
     private void removeRemoteParticipant(RemoteParticipant remoteParticipant) {
-        videoStatusTextView.setText(String.format("RemoteParticipant %s left", remoteParticipant.getIdentity()));
         if (!remoteParticipant.getIdentity().equals(remoteParticipantIdentity)) {
             return;
         }
@@ -560,6 +564,48 @@ public class MultiPartyActivity extends AppCompatActivity {
 
         ImageView dominantSpeakerImg = participantContainer.getDominantSpeakerImg();
         dominantSpeakerImg.setVisibility(GONE);
+
+        ImageView networkQualityLevelImageView = participantContainer.getNetworkQualityLevelImageView();
+        networkQualityLevelImageView.setVisibility(GONE);
+    }
+
+    private void updateLocalParticipantNetworkQuality(NetworkQualityLevel networkQualityLevel) {
+        if (localParticipantNetworkQualityLevelImageView.getVisibility() != VISIBLE) {
+            localParticipantNetworkQualityLevelImageView.setVisibility(VISIBLE);
+        }
+
+        localParticipantNetworkQualityLevelImageView.setImageResource(getNetworkQualityLevelImage(networkQualityLevel));
+    }
+
+    private void updateRemoteParticipantNetworkQuality(RemoteParticipant remoteParticipant, NetworkQualityLevel networkQualityLevel) {
+        ParticipantView participantContainer = participantViewGroupMap.get(remoteParticipant.getSid());
+        if (participantContainer != null) {
+            ImageView networkQualityLevelImageView = participantContainer.getNetworkQualityLevelImageView();
+
+            if (networkQualityLevelImageView.getVisibility() != VISIBLE) {
+                networkQualityLevelImageView.setVisibility(VISIBLE);
+            }
+
+            networkQualityLevelImageView.setImageResource(getNetworkQualityLevelImage(networkQualityLevel));
+        }
+    }
+
+    private int getNetworkQualityLevelImage(NetworkQualityLevel networkQualityLevel) {
+        int networkQualityLevelImage = R.drawable.network_quality_level_0;
+
+        if (networkQualityLevel == NetworkQualityLevel.NETWORK_QUALITY_LEVEL_ONE) {
+            networkQualityLevelImage = R.drawable.network_quality_level_1;
+        } else if (networkQualityLevel == NetworkQualityLevel.NETWORK_QUALITY_LEVEL_TWO) {
+            networkQualityLevelImage = R.drawable.network_quality_level_2;
+        } else if (networkQualityLevel == NetworkQualityLevel.NETWORK_QUALITY_LEVEL_THREE) {
+            networkQualityLevelImage = R.drawable.network_quality_level_3;
+        } else if (networkQualityLevel == NetworkQualityLevel.NETWORK_QUALITY_LEVEL_FOUR) {
+            networkQualityLevelImage = R.drawable.network_quality_level_4;
+        } else if (networkQualityLevel == NetworkQualityLevel.NETWORK_QUALITY_LEVEL_FIVE) {
+            networkQualityLevelImage = R.drawable.network_quality_level_5;
+        }
+
+        return networkQualityLevelImage;
     }
 
     /*
@@ -569,7 +615,7 @@ public class MultiPartyActivity extends AppCompatActivity {
         return new Room.Listener() {
             @Override
             public void onConnected(Room room) {
-                networkQualityLevelImage.setVisibility(VISIBLE);
+                localParticipantNetworkQualityLevelImageView.setVisibility(GONE);
                 localParticipant = room.getLocalParticipant();
                 localParticipant.setListener(new LocalParticipant.Listener() {
                     @Override
@@ -604,23 +650,14 @@ public class MultiPartyActivity extends AppCompatActivity {
 
                     @Override
                     public void onNetworkQualityLevelChanged(@NonNull LocalParticipant localParticipant, @NonNull NetworkQualityLevel networkQualityLevel) {
-                        if (networkQualityLevel == NetworkQualityLevel.NETWORK_QUALITY_LEVEL_UNKNOWN ||
-                                networkQualityLevel == NetworkQualityLevel.NETWORK_QUALITY_LEVEL_ZERO) {
-                            networkQualityLevelImage.setImageResource(R.drawable.network_quality_level_0);
-                        } else if (networkQualityLevel == NetworkQualityLevel.NETWORK_QUALITY_LEVEL_ONE) {
-                            networkQualityLevelImage.setImageResource(R.drawable.network_quality_level_1);
-                        } else if (networkQualityLevel == NetworkQualityLevel.NETWORK_QUALITY_LEVEL_TWO) {
-                            networkQualityLevelImage.setImageResource(R.drawable.network_quality_level_2);
-                        } else if (networkQualityLevel == NetworkQualityLevel.NETWORK_QUALITY_LEVEL_THREE) {
-                            networkQualityLevelImage.setImageResource(R.drawable.network_quality_level_3);
-                        } else if (networkQualityLevel == NetworkQualityLevel.NETWORK_QUALITY_LEVEL_FOUR) {
-                            networkQualityLevelImage.setImageResource(R.drawable.network_quality_level_4);
-                        } else if (networkQualityLevel == NetworkQualityLevel.NETWORK_QUALITY_LEVEL_FIVE) {
-                            networkQualityLevelImage.setImageResource(R.drawable.network_quality_level_5);
-                        }
+                        Log.i(TAG, String.format("onNetworkQualityLevelChanged: " +
+                                        "[LocalParticipant: identity=%s], " +
+                                        "[NetworkQualityLevel: %s]",
+                                        localParticipant.getIdentity(),
+                                        networkQualityLevel));
+                        updateLocalParticipantNetworkQuality(networkQualityLevel);
                     }
                 });
-                videoStatusTextView.setText(String.format("Connected to %s", room.getName()));
                 setTitle(room.getName());
 
                 for (RemoteParticipant remoteParticipant : room.getRemoteParticipants()) {
@@ -630,28 +667,24 @@ public class MultiPartyActivity extends AppCompatActivity {
 
             @Override
             public void onReconnecting(@NonNull Room room, @NonNull TwilioException twilioException) {
-                videoStatusTextView.setText(String.format("Reconnecting to %s", room.getName()));
                 reconnectingProgressBar.setVisibility(VISIBLE);
             }
 
             @Override
             public void onReconnected(@NonNull Room room) {
-                videoStatusTextView.setText(String.format("Connected to %s", room.getName()));
                 reconnectingProgressBar.setVisibility(GONE);
             }
 
             @Override
             public void onConnectFailure(@NonNull Room room, @NonNull TwilioException e) {
-                videoStatusTextView.setText(R.string.connect_failed);
                 configureAudio(false);
                 intializeUI();
             }
 
             @Override
             public void onDisconnected(Room room, TwilioException e) {
-                networkQualityLevelImage.setVisibility(GONE);
+                localParticipantNetworkQualityLevelImageView.setVisibility(GONE);
                 localParticipant = null;
-                videoStatusTextView.setText(String.format("Disconnected from %s", room.getName()));
                 reconnectingProgressBar.setVisibility(GONE);
                 MultiPartyActivity.this.room = null;
                 // Only reinitialize the UI if disconnect was not called from onDestroy()
@@ -715,8 +748,8 @@ public class MultiPartyActivity extends AppCompatActivity {
     private RemoteParticipant.Listener remoteParticipantListener() {
         return new RemoteParticipant.Listener() {
             @Override
-            public void onAudioTrackPublished(RemoteParticipant remoteParticipant,
-                                              RemoteAudioTrackPublication remoteAudioTrackPublication) {
+            public void onAudioTrackPublished(@NonNull RemoteParticipant remoteParticipant,
+                                              @NonNull RemoteAudioTrackPublication remoteAudioTrackPublication) {
                 Log.i(TAG, String.format("onAudioTrackPublished: " +
                                 "[RemoteParticipant: identity=%s], " +
                                 "[RemoteAudioTrackPublication: sid=%s, enabled=%b, " +
@@ -726,12 +759,11 @@ public class MultiPartyActivity extends AppCompatActivity {
                         remoteAudioTrackPublication.isTrackEnabled(),
                         remoteAudioTrackPublication.isTrackSubscribed(),
                         remoteAudioTrackPublication.getTrackName()));
-                videoStatusTextView.setText("onAudioTrackPublished");
             }
 
             @Override
-            public void onAudioTrackUnpublished(RemoteParticipant remoteParticipant,
-                                                RemoteAudioTrackPublication remoteAudioTrackPublication) {
+            public void onAudioTrackUnpublished(@NonNull RemoteParticipant remoteParticipant,
+                                                @NonNull RemoteAudioTrackPublication remoteAudioTrackPublication) {
                 Log.i(TAG, String.format("onAudioTrackUnpublished: " +
                                 "[RemoteParticipant: identity=%s], " +
                                 "[RemoteAudioTrackPublication: sid=%s, enabled=%b, " +
@@ -741,12 +773,11 @@ public class MultiPartyActivity extends AppCompatActivity {
                         remoteAudioTrackPublication.isTrackEnabled(),
                         remoteAudioTrackPublication.isTrackSubscribed(),
                         remoteAudioTrackPublication.getTrackName()));
-                videoStatusTextView.setText("onAudioTrackUnpublished");
             }
 
             @Override
-            public void onDataTrackPublished(RemoteParticipant remoteParticipant,
-                                             RemoteDataTrackPublication remoteDataTrackPublication) {
+            public void onDataTrackPublished(@NonNull RemoteParticipant remoteParticipant,
+                                             @NonNull RemoteDataTrackPublication remoteDataTrackPublication) {
                 Log.i(TAG, String.format("onDataTrackPublished: " +
                                 "[RemoteParticipant: identity=%s], " +
                                 "[RemoteDataTrackPublication: sid=%s, enabled=%b, " +
@@ -756,12 +787,11 @@ public class MultiPartyActivity extends AppCompatActivity {
                         remoteDataTrackPublication.isTrackEnabled(),
                         remoteDataTrackPublication.isTrackSubscribed(),
                         remoteDataTrackPublication.getTrackName()));
-                videoStatusTextView.setText("onDataTrackPublished");
             }
 
             @Override
-            public void onDataTrackUnpublished(RemoteParticipant remoteParticipant,
-                                               RemoteDataTrackPublication remoteDataTrackPublication) {
+            public void onDataTrackUnpublished(@NonNull RemoteParticipant remoteParticipant,
+                                               @NonNull RemoteDataTrackPublication remoteDataTrackPublication) {
                 Log.i(TAG, String.format("onDataTrackUnpublished: " +
                                 "[RemoteParticipant: identity=%s], " +
                                 "[RemoteDataTrackPublication: sid=%s, enabled=%b, " +
@@ -771,12 +801,11 @@ public class MultiPartyActivity extends AppCompatActivity {
                         remoteDataTrackPublication.isTrackEnabled(),
                         remoteDataTrackPublication.isTrackSubscribed(),
                         remoteDataTrackPublication.getTrackName()));
-                videoStatusTextView.setText("onDataTrackUnpublished");
             }
 
             @Override
-            public void onVideoTrackPublished(RemoteParticipant remoteParticipant,
-                                              RemoteVideoTrackPublication remoteVideoTrackPublication) {
+            public void onVideoTrackPublished(@NonNull RemoteParticipant remoteParticipant,
+                                              @NonNull RemoteVideoTrackPublication remoteVideoTrackPublication) {
                 Log.i(TAG, String.format("onVideoTrackPublished: " +
                                 "[RemoteParticipant: identity=%s], " +
                                 "[RemoteVideoTrackPublication: sid=%s, enabled=%b, " +
@@ -786,12 +815,11 @@ public class MultiPartyActivity extends AppCompatActivity {
                         remoteVideoTrackPublication.isTrackEnabled(),
                         remoteVideoTrackPublication.isTrackSubscribed(),
                         remoteVideoTrackPublication.getTrackName()));
-                videoStatusTextView.setText("onVideoTrackPublished");
             }
 
             @Override
-            public void onVideoTrackUnpublished(RemoteParticipant remoteParticipant,
-                                                RemoteVideoTrackPublication remoteVideoTrackPublication) {
+            public void onVideoTrackUnpublished(@NonNull RemoteParticipant remoteParticipant,
+                                                @NonNull RemoteVideoTrackPublication remoteVideoTrackPublication) {
                 Log.i(TAG, String.format("onVideoTrackUnpublished: " +
                                 "[RemoteParticipant: identity=%s], " +
                                 "[RemoteVideoTrackPublication: sid=%s, enabled=%b, " +
@@ -801,13 +829,12 @@ public class MultiPartyActivity extends AppCompatActivity {
                         remoteVideoTrackPublication.isTrackEnabled(),
                         remoteVideoTrackPublication.isTrackSubscribed(),
                         remoteVideoTrackPublication.getTrackName()));
-                videoStatusTextView.setText("onVideoTrackUnpublished");
             }
 
             @Override
-            public void onAudioTrackSubscribed(RemoteParticipant remoteParticipant,
-                                               RemoteAudioTrackPublication remoteAudioTrackPublication,
-                                               RemoteAudioTrack remoteAudioTrack) {
+            public void onAudioTrackSubscribed(@NonNull RemoteParticipant remoteParticipant,
+                                               @NonNull RemoteAudioTrackPublication remoteAudioTrackPublication,
+                                               @NonNull RemoteAudioTrack remoteAudioTrack) {
                 Log.i(TAG, String.format("onAudioTrackSubscribed: " +
                                 "[RemoteParticipant: identity=%s], " +
                                 "[RemoteAudioTrack: enabled=%b, playbackEnabled=%b, name=%s]",
@@ -815,13 +842,12 @@ public class MultiPartyActivity extends AppCompatActivity {
                         remoteAudioTrack.isEnabled(),
                         remoteAudioTrack.isPlaybackEnabled(),
                         remoteAudioTrack.getName()));
-                videoStatusTextView.setText("onAudioTrackSubscribed");
             }
 
             @Override
-            public void onAudioTrackUnsubscribed(RemoteParticipant remoteParticipant,
-                                                 RemoteAudioTrackPublication remoteAudioTrackPublication,
-                                                 RemoteAudioTrack remoteAudioTrack) {
+            public void onAudioTrackUnsubscribed(@NonNull RemoteParticipant remoteParticipant,
+                                                 @NonNull RemoteAudioTrackPublication remoteAudioTrackPublication,
+                                                 @NonNull RemoteAudioTrack remoteAudioTrack) {
                 Log.i(TAG, String.format("onAudioTrackUnsubscribed: " +
                                 "[RemoteParticipant: identity=%s], " +
                                 "[RemoteAudioTrack: enabled=%b, playbackEnabled=%b, name=%s]",
@@ -829,13 +855,12 @@ public class MultiPartyActivity extends AppCompatActivity {
                         remoteAudioTrack.isEnabled(),
                         remoteAudioTrack.isPlaybackEnabled(),
                         remoteAudioTrack.getName()));
-                videoStatusTextView.setText("onAudioTrackUnsubscribed");
             }
 
             @Override
-            public void onAudioTrackSubscriptionFailed(RemoteParticipant remoteParticipant,
-                                                       RemoteAudioTrackPublication remoteAudioTrackPublication,
-                                                       TwilioException twilioException) {
+            public void onAudioTrackSubscriptionFailed(@NonNull RemoteParticipant remoteParticipant,
+                                                       @NonNull RemoteAudioTrackPublication remoteAudioTrackPublication,
+                                                       @NonNull TwilioException twilioException) {
                 Log.i(TAG, String.format("onAudioTrackSubscriptionFailed: " +
                                 "[RemoteParticipant: identity=%s], " +
                                 "[RemoteAudioTrackPublication: sid=%b, name=%s]" +
@@ -845,39 +870,36 @@ public class MultiPartyActivity extends AppCompatActivity {
                         remoteAudioTrackPublication.getTrackName(),
                         twilioException.getCode(),
                         twilioException.getMessage()));
-                videoStatusTextView.setText("onAudioTrackSubscriptionFailed");
             }
 
             @Override
-            public void onDataTrackSubscribed(RemoteParticipant remoteParticipant,
-                                              RemoteDataTrackPublication remoteDataTrackPublication,
-                                              RemoteDataTrack remoteDataTrack) {
+            public void onDataTrackSubscribed(@NonNull RemoteParticipant remoteParticipant,
+                                              @NonNull RemoteDataTrackPublication remoteDataTrackPublication,
+                                              @NonNull RemoteDataTrack remoteDataTrack) {
                 Log.i(TAG, String.format("onDataTrackSubscribed: " +
                                 "[RemoteParticipant: identity=%s], " +
                                 "[RemoteDataTrack: enabled=%b, name=%s]",
                         remoteParticipant.getIdentity(),
                         remoteDataTrack.isEnabled(),
                         remoteDataTrack.getName()));
-                videoStatusTextView.setText("onDataTrackSubscribed");
             }
 
             @Override
-            public void onDataTrackUnsubscribed(RemoteParticipant remoteParticipant,
-                                                RemoteDataTrackPublication remoteDataTrackPublication,
-                                                RemoteDataTrack remoteDataTrack) {
+            public void onDataTrackUnsubscribed(@NonNull RemoteParticipant remoteParticipant,
+                                                @NonNull RemoteDataTrackPublication remoteDataTrackPublication,
+                                                @NonNull RemoteDataTrack remoteDataTrack) {
                 Log.i(TAG, String.format("onDataTrackUnsubscribed: " +
                                 "[RemoteParticipant: identity=%s], " +
                                 "[RemoteDataTrack: enabled=%b, name=%s]",
                         remoteParticipant.getIdentity(),
                         remoteDataTrack.isEnabled(),
                         remoteDataTrack.getName()));
-                videoStatusTextView.setText("onDataTrackUnsubscribed");
             }
 
             @Override
-            public void onDataTrackSubscriptionFailed(RemoteParticipant remoteParticipant,
-                                                      RemoteDataTrackPublication remoteDataTrackPublication,
-                                                      TwilioException twilioException) {
+            public void onDataTrackSubscriptionFailed(@NonNull RemoteParticipant remoteParticipant,
+                                                      @NonNull RemoteDataTrackPublication remoteDataTrackPublication,
+                                                      @NonNull TwilioException twilioException) {
                 Log.i(TAG, String.format("onDataTrackSubscriptionFailed: " +
                                 "[RemoteParticipant: identity=%s], " +
                                 "[RemoteDataTrackPublication: sid=%b, name=%s]" +
@@ -887,41 +909,38 @@ public class MultiPartyActivity extends AppCompatActivity {
                         remoteDataTrackPublication.getTrackName(),
                         twilioException.getCode(),
                         twilioException.getMessage()));
-                videoStatusTextView.setText("onDataTrackSubscriptionFailed");
             }
 
             @Override
-            public void onVideoTrackSubscribed(RemoteParticipant remoteParticipant,
-                                               RemoteVideoTrackPublication remoteVideoTrackPublication,
-                                               RemoteVideoTrack remoteVideoTrack) {
+            public void onVideoTrackSubscribed(@NonNull RemoteParticipant remoteParticipant,
+                                               @NonNull RemoteVideoTrackPublication remoteVideoTrackPublication,
+                                               @NonNull RemoteVideoTrack remoteVideoTrack) {
                 Log.i(TAG, String.format("onVideoTrackSubscribed: " +
                                 "[RemoteParticipant: identity=%s], " +
                                 "[RemoteVideoTrack: enabled=%b, name=%s]",
                         remoteParticipant.getIdentity(),
                         remoteVideoTrack.isEnabled(),
                         remoteVideoTrack.getName()));
-                videoStatusTextView.setText("onVideoTrackSubscribed");
                 addRemoteParticipantVideo(remoteParticipant, remoteVideoTrack);
             }
 
             @Override
-            public void onVideoTrackUnsubscribed(RemoteParticipant remoteParticipant,
-                                                 RemoteVideoTrackPublication remoteVideoTrackPublication,
-                                                 RemoteVideoTrack remoteVideoTrack) {
+            public void onVideoTrackUnsubscribed(@NonNull RemoteParticipant remoteParticipant,
+                                                 @NonNull RemoteVideoTrackPublication remoteVideoTrackPublication,
+                                                 @NonNull RemoteVideoTrack remoteVideoTrack) {
                 Log.i(TAG, String.format("onVideoTrackUnsubscribed: " +
                                 "[RemoteParticipant: identity=%s], " +
                                 "[RemoteVideoTrack: enabled=%b, name=%s]",
                         remoteParticipant.getIdentity(),
                         remoteVideoTrack.isEnabled(),
                         remoteVideoTrack.getName()));
-                videoStatusTextView.setText("onVideoTrackUnsubscribed");
                 removeParticipantVideo(remoteParticipant);
             }
 
             @Override
-            public void onVideoTrackSubscriptionFailed(RemoteParticipant remoteParticipant,
-                                                       RemoteVideoTrackPublication remoteVideoTrackPublication,
-                                                       TwilioException twilioException) {
+            public void onVideoTrackSubscriptionFailed(@NonNull RemoteParticipant remoteParticipant,
+                                                       @NonNull RemoteVideoTrackPublication remoteVideoTrackPublication,
+                                                       @NonNull TwilioException twilioException) {
                 Log.i(TAG, String.format("onVideoTrackSubscriptionFailed: " +
                                 "[RemoteParticipant: identity=%s], " +
                                 "[RemoteVideoTrackPublication: sid=%b, name=%s]" +
@@ -931,7 +950,6 @@ public class MultiPartyActivity extends AppCompatActivity {
                         remoteVideoTrackPublication.getTrackName(),
                         twilioException.getCode(),
                         twilioException.getMessage()));
-                videoStatusTextView.setText("onVideoTrackSubscriptionFailed");
                 Snackbar.make(connectActionFab,
                         String.format("Failed to subscribe to %s video track",
                                 remoteParticipant.getIdentity()),
@@ -940,27 +958,38 @@ public class MultiPartyActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onAudioTrackEnabled(RemoteParticipant remoteParticipant,
-                                            RemoteAudioTrackPublication remoteAudioTrackPublication) {
+            public void onAudioTrackEnabled(@NonNull RemoteParticipant remoteParticipant,
+                                            @NonNull RemoteAudioTrackPublication remoteAudioTrackPublication) {
 
             }
 
             @Override
-            public void onAudioTrackDisabled(RemoteParticipant remoteParticipant,
-                                             RemoteAudioTrackPublication remoteAudioTrackPublication) {
+            public void onAudioTrackDisabled(@NonNull RemoteParticipant remoteParticipant,
+                                             @NonNull RemoteAudioTrackPublication remoteAudioTrackPublication) {
 
             }
 
             @Override
-            public void onVideoTrackEnabled(RemoteParticipant remoteParticipant,
-                                            RemoteVideoTrackPublication remoteVideoTrackPublication) {
+            public void onVideoTrackEnabled(@NonNull RemoteParticipant remoteParticipant,
+                                            @NonNull RemoteVideoTrackPublication remoteVideoTrackPublication) {
 
             }
 
             @Override
-            public void onVideoTrackDisabled(RemoteParticipant remoteParticipant,
-                                             RemoteVideoTrackPublication remoteVideoTrackPublication) {
+            public void onVideoTrackDisabled(@NonNull RemoteParticipant remoteParticipant,
+                                             @NonNull RemoteVideoTrackPublication remoteVideoTrackPublication) {
 
+            }
+
+            @Override
+            public void onNetworkQualityLevelChanged(@NonNull RemoteParticipant remoteParticipant,
+                                                     @NonNull NetworkQualityLevel networkQualityLevel) {
+                Log.i(TAG, String.format("onNetworkQualityLevelChanged: " +
+                                "[RemoteParticipant: identity=%s], " +
+                                "[NetworkQualityLevel: %s]",
+                                remoteParticipant.getIdentity(),
+                                networkQualityLevel));
+                updateRemoteParticipantNetworkQuality(remoteParticipant, networkQualityLevel);
             }
         };
     }
