@@ -1,5 +1,8 @@
 [![Javadoc](https://img.shields.io/badge/javadoc-OK-blue.svg)](https://twilio.github.io/twilio-video-android/docs/latest/)
 
+**NEW:** Please check out the newly open-sourced [video collaboration app](https://github.com/twilio/twilio-video-app-android)
+built with the Android Video SDK.
+
 > NOTE: These sample applications use the Twilio Video 3.x APIs. For examples using our 1.x APIs, please see
 the [1.x](https://github.com/twilio/video-quickstart-android/tree/1.x) branch. For examples using our 2.x APIs, please see
 the [2.x](https://github.com/twilio/video-quickstart-android/tree/2.x) branch.
