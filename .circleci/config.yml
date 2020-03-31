@@ -67,9 +67,6 @@ jobs:
           path: exampleDataTrack/build/reports/lint-results.html
           prefix: exampleDataTrack
       - store_artifacts:
-          path: exampleMultipartyVideo/build/reports/lint-results.html
-          prefix: exampleMultipartyVideo
-      - store_artifacts:
           path: exampleScreenCapturer/build/reports/lint-results.html
           prefix: exampleScreenCapturer
       - store_artifacts:
@@ -154,24 +151,6 @@ jobs:
       - run:
           name: Build exampleDataTrack
           command: ./gradlew -q exampleDataTrack:assemble
-
-      # Save cache
-      - save-cache: *save-cache-gradle
-
-  build-exampleMultipartyVideo:
-    <<: *build-defaults
-    resource_class: large
-    steps:
-      # Setup
-      - checkout
-      - attach_workspace:
-          at: *workspace
-      - restore-cache: *restore-cache-gradle
-
-      # Build app
-      - run:
-          name: Build exampleDataTrack
-          command: ./gradlew -q exampleMultipartyVideo:assemble
 
       # Save cache
       - save-cache: *save-cache-gradle
@@ -291,9 +270,6 @@ workflows:
           requires:
               - setup-workspace
       - build-exampleDataTrack:
-          requires:
-              - setup-workspace
-      - build-exampleMultipartyVideo:
           requires:
               - setup-workspace
       - build-exampleAudioSink:
