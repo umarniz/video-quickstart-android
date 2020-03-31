@@ -1,8 +1,0 @@
-<resources>
-    <string name="app_name">MultiParty Video Example</string>
-    <string name="error_retrieving_access_token">Error retrieving token</string>
-    <string name="permissions_needed">Camera and Microphone permissions needed. Please allow in App Settings for additional functionality.</string>
-    <string name="switch_camera">Switch Camera</string>
-    <string name="network_quality_level">Network Quality Level</string>
-    <string name="dominant_speaker">Dominant Speaker</string>
-</resources>
