@@ -10,8 +10,8 @@
 
     <com.twilio.video.VideoView
         android:id="@+id/thumbnailVideoView"
-        app:overlaySurface="true"
-        app:mirror="true"
+        app:tviOverlaySurface="true"
+        app:tviMirror="true"
         android:visibility="gone"
         android:layout_width="96dp"
         android:layout_height="96dp"
@@ -20,7 +20,7 @@
 
     <com.twilio.video.VideoView
         android:id="@+id/primaryVideoView"
-        app:mirror="true"
+        app:tviMirror="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"/>
