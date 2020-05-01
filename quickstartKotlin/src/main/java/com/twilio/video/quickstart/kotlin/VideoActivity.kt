@@ -6,10 +6,7 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.media.AudioAttributes
-import android.media.AudioFocusRequest
 import android.media.AudioManager
-import android.os.Build
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.design.widget.Snackbar
@@ -24,6 +21,11 @@ import android.view.View
 import android.widget.EditText
 import android.widget.Toast
 import com.koushikdutta.ion.Ion
+import com.twilio.audioswitch.selection.AudioDevice
+import com.twilio.audioswitch.selection.AudioDevice.Earpiece
+import com.twilio.audioswitch.selection.AudioDevice.Speakerphone
+import com.twilio.audioswitch.selection.AudioDevice.WiredHeadset
+import com.twilio.audioswitch.selection.AudioDeviceSelector
 import com.twilio.video.AudioCodec
 import com.twilio.video.CameraCapturer
 import com.twilio.video.ConnectOptions
@@ -55,6 +57,7 @@ import com.twilio.video.Vp9Codec
 import kotlinx.android.synthetic.main.activity_video.*
 import kotlinx.android.synthetic.main.content_video.*
 import java.util.*
+import kotlin.properties.Delegates
 
 
 class VideoActivity : AppCompatActivity() {
@@ -164,7 +167,7 @@ class VideoActivity : AppCompatActivity() {
 
         override fun onConnectFailure(room: Room, e: TwilioException) {
             videoStatusTextView.text = "Failed to connect"
-            configureAudio(false)
+            audioDeviceSelector.deactivate()
             initializeUI()
         }
 
@@ -175,7 +178,7 @@ class VideoActivity : AppCompatActivity() {
             this@VideoActivity.room = null
             // Only reinitialize the UI if disconnect was not called from onDestroy()
             if (!disconnectedFromOnDestroy) {
-                configureAudio(false)
+                audioDeviceSelector.deactivate()
                 initializeUI()
                 moveLocalVideoToPrimaryView()
             }
@@ -406,19 +409,20 @@ class VideoActivity : AppCompatActivity() {
     private val sharedPreferences by lazy {
         PreferenceManager.getDefaultSharedPreferences(this@VideoActivity)
     }
-    private val audioManager by lazy {
-        this@VideoActivity.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+
+    /*
+     * Audio management
+     */
+    private val audioDeviceSelector by lazy {
+        AudioDeviceSelector(applicationContext)
     }
+    private var savedVolumeControlStream by Delegates.notNull<Int>()
+    private lateinit var audioDeviceMenuItem: MenuItem
 
     private var participantIdentity: String? = null
-
-    private var previousAudioMode = 0
-    private var previousMicrophoneMute = false
     private lateinit var localVideoView: VideoRenderer
     private var disconnectedFromOnDestroy = false
     private var isSpeakerPhoneEnabled = true
-    private lateinit var turnSpeakerOnMenuItem: MenuItem
-    private lateinit var turnSpeakerOffMenuItem: MenuItem
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -432,12 +436,8 @@ class VideoActivity : AppCompatActivity() {
         /*
          * Enable changing the volume using the up/down keys during a conversation
          */
+        savedVolumeControlStream = volumeControlStream
         volumeControlStream = AudioManager.STREAM_VOICE_CALL
-
-        /*
-         * Needed for setting/abandoning audio focus during call
-         */
-        audioManager.isSpeakerphoneOn = true
 
         /*
          * Set access token
@@ -501,11 +501,6 @@ class VideoActivity : AppCompatActivity() {
         localParticipant?.setEncodingParameters(encodingParameters)
 
         /*
-         * Route audio through cached value.
-         */
-        audioManager.isSpeakerphoneOn = isSpeakerPhoneEnabled
-
-        /*
          * Update reconnecting UI
          */
         room?.let {
@@ -524,7 +519,6 @@ class VideoActivity : AppCompatActivity() {
          */
         localVideoTrack?.let { localParticipant?.unpublishTrack(it) }
 
-
         /*
          * Release the local video track before going in the background. This ensures that the
          * camera can be used by other applications while this app is in the background.
@@ -535,6 +529,13 @@ class VideoActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        /*
+         * Tear down audio management and restore previous volume stream
+         */
+        audioDeviceSelector.deactivate()
+        audioDeviceSelector.stop()
+        volumeControlStream = savedVolumeControlStream
+
         /*
          * Always disconnect from the room before leaving the Activity to
          * ensure any memory allocated to the Room resource is freed.
@@ -555,27 +556,23 @@ class VideoActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater = menuInflater
         inflater.inflate(R.menu.menu, menu)
-        turnSpeakerOnMenuItem = menu.findItem(R.id.menu_turn_speaker_on)
-        turnSpeakerOffMenuItem = menu.findItem(R.id.menu_turn_speaker_off)
+        audioDeviceMenuItem = menu.findItem(R.id.menu_audio_device)
+
+        /*
+         * Start the audio device selector after the menu is created and update the icon when the
+         * selected audio device changes.
+         */
+        audioDeviceSelector.start { audioDevices, audioDevice ->
+            updateAudioDeviceIcon(audioDevice)
+        }
+
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_settings -> startActivity(Intent(this, SettingsActivity::class.java))
-            R.id.menu_turn_speaker_on -> {
-                audioManager.isSpeakerphoneOn = true
-                turnSpeakerOffMenuItem.isVisible = true
-                turnSpeakerOnMenuItem.isVisible = false
-                isSpeakerPhoneEnabled = true
-            }
-
-            R.id.menu_turn_speaker_off -> {
-                audioManager.isSpeakerphoneOn = false
-                turnSpeakerOffMenuItem.isVisible = false
-                turnSpeakerOnMenuItem.isVisible = true
-                isSpeakerPhoneEnabled = false
-            }
+            R.id.menu_audio_device -> showAudioDevices()
         }
         return true
     }
@@ -641,7 +638,7 @@ class VideoActivity : AppCompatActivity() {
     }
 
     private fun connectToRoom(roomName: String) {
-        configureAudio(true)
+        audioDeviceSelector.activate();
         val connectOptionsBuilder = ConnectOptions.Builder(accessToken)
                 .roomName(roomName)
 
@@ -693,6 +690,54 @@ class VideoActivity : AppCompatActivity() {
         localVideoActionFab.setOnClickListener(localVideoClickListener())
         muteActionFab.show()
         muteActionFab.setOnClickListener(muteClickListener())
+    }
+
+    /*
+     * Show the current available audio devices.
+     */
+    private fun showAudioDevices() {
+        val selectedDevice = audioDeviceSelector.selectedAudioDevice
+        val availableAudioDevices = audioDeviceSelector.availableAudioDevices
+
+        if (selectedDevice != null) {
+            val selectedDeviceIndex = availableAudioDevices.indexOf(selectedDevice)
+            val audioDeviceNames = ArrayList<String>()
+
+            for (a in availableAudioDevices) {
+                audioDeviceNames.add(a.name)
+            }
+
+            AlertDialog.Builder(this)
+                    .setTitle(R.string.room_screen_select_device)
+                    .setSingleChoiceItems(
+                            audioDeviceNames.toTypedArray<CharSequence>(),
+                            selectedDeviceIndex
+                    ) { dialog, index ->
+                        dialog.dismiss()
+                        val selectedAudioDevice = availableAudioDevices[index]
+                        updateAudioDeviceIcon(selectedAudioDevice)
+                        audioDeviceSelector.selectDevice(selectedAudioDevice)
+                    }.create().show()
+        }
+    }
+
+    /*
+     * Update the menu icon based on the currently selected audio device.
+     */
+    private fun updateAudioDeviceIcon(selectedAudioDevice: AudioDevice?) {
+        var audioDeviceMenuIcon = R.drawable.ic_phonelink_ring_white_24dp
+
+        if (selectedAudioDevice is AudioDevice.BluetoothHeadset) {
+            audioDeviceMenuIcon = R.drawable.ic_bluetooth_white_24dp
+        } else if (selectedAudioDevice is WiredHeadset) {
+            audioDeviceMenuIcon = R.drawable.ic_headset_mic_white_24dp
+        } else if (selectedAudioDevice is Earpiece) {
+            audioDeviceMenuIcon = R.drawable.ic_phonelink_ring_white_24dp
+        } else if (selectedAudioDevice is Speakerphone) {
+            audioDeviceMenuIcon = R.drawable.ic_volume_up_white_24dp
+        }
+
+        audioDeviceMenuItem.setIcon(audioDeviceMenuIcon)
     }
 
     /*
@@ -903,50 +948,6 @@ class VideoActivity : AppCompatActivity() {
                                 .show()
                     }
                 }
-    }
-
-    private fun configureAudio(enable: Boolean) {
-        with(audioManager) {
-            if (enable) {
-                previousAudioMode = audioManager.mode
-                // Request audio focus before making any device switch
-                requestAudioFocus()
-                /*
-                 * Use MODE_IN_COMMUNICATION as the default audio mode. It is required
-                 * to be in this mode when playout and/or recording starts for the best
-                 * possible VoIP performance. Some devices have difficulties with
-                 * speaker mode if this is not set.
-                 */
-                mode = AudioManager.MODE_IN_COMMUNICATION
-                /*
-                 * Always disable microphone mute during a WebRTC call.
-                 */
-                previousMicrophoneMute = isMicrophoneMute
-                isMicrophoneMute = false
-            } else {
-                mode = previousAudioMode
-                abandonAudioFocus(null)
-                isMicrophoneMute = previousMicrophoneMute
-            }
-        }
-    }
-
-    private fun requestAudioFocus() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val playbackAttributes = AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                    .build()
-            val focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
-                    .setAudioAttributes(playbackAttributes)
-                    .setAcceptsDelayedFocusGain(true)
-                    .setOnAudioFocusChangeListener { }
-                    .build()
-            audioManager.requestAudioFocus(focusRequest)
-        } else {
-            audioManager.requestAudioFocus(null, AudioManager.STREAM_VOICE_CALL,
-                    AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
-        }
     }
 
     private fun createConnectDialog(participantEditText: EditText,

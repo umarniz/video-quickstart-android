@@ -28,7 +28,6 @@ import android.widget.Toast;
 
 import com.koushikdutta.ion.Ion;
 import com.twilio.audioswitch.selection.AudioDevice;
-import com.twilio.audioswitch.selection.AudioDeviceChangeListenerKt;
 import com.twilio.audioswitch.selection.AudioDeviceSelector;
 import com.twilio.video.AudioCodec;
 import com.twilio.video.CameraCapturer;
@@ -71,7 +70,6 @@ import java.util.List;
 import java.util.UUID;
 
 import kotlin.Unit;
-import kotlin.jvm.functions.Function2;
 
 public class VideoActivity extends AppCompatActivity {
     private static final int CAMERA_MIC_PERMISSION_REQUEST_CODE = 1;
@@ -149,7 +147,6 @@ public class VideoActivity extends AppCompatActivity {
     private AudioDeviceSelector audioDeviceSelector;
     private int savedVolumeControlStream;
     private MenuItem audioDeviceMenuItem;
-    private List<? extends AudioDevice> availableAudioDevices;
 
     private VideoRenderer localVideoView;
     private boolean disconnectedFromOnDestroy;
@@ -208,7 +205,6 @@ public class VideoActivity extends AppCompatActivity {
          * selected audio device changes.
          */
         audioDeviceSelector.start((audioDevices, audioDevice) -> {
-            VideoActivity.this.availableAudioDevices = audioDevices;
             updateAudioDeviceIcon(audioDevice);
             return Unit.INSTANCE;
         });
@@ -495,8 +491,9 @@ public class VideoActivity extends AppCompatActivity {
      */
     private void showAudioDevices() {
         AudioDevice selectedDevice = audioDeviceSelector.getSelectedAudioDevice();
+        List<AudioDevice> availableAudioDevices = audioDeviceSelector.getAvailableAudioDevices();
 
-        if (selectedDevice != null && availableAudioDevices != null) {
+        if (selectedDevice != null) {
             int selectedDeviceIndex = availableAudioDevices.indexOf(selectedDevice);
 
             ArrayList<String> audioDeviceNames = new ArrayList<>();
