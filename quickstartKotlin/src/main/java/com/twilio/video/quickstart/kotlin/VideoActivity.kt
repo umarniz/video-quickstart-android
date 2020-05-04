@@ -533,7 +533,6 @@ class VideoActivity : AppCompatActivity() {
         /*
          * Tear down audio management and restore previous volume stream
          */
-        audioDeviceSelector.deactivate()
         audioDeviceSelector.stop()
         volumeControlStream = savedVolumeControlStream
 
@@ -697,10 +696,9 @@ class VideoActivity : AppCompatActivity() {
      * Show the current available audio devices.
      */
     private fun showAudioDevices() {
-        val selectedDevice = audioDeviceSelector.selectedAudioDevice
         val availableAudioDevices = audioDeviceSelector.availableAudioDevices
 
-        if (selectedDevice != null) {
+        audioDeviceSelector.selectedAudioDevice?.let { selectedDevice ->
             val selectedDeviceIndex = availableAudioDevices.indexOf(selectedDevice)
             val audioDeviceNames = ArrayList<String>()
 

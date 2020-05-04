@@ -338,7 +338,6 @@ public class VideoActivity extends AppCompatActivity {
         /*
          * Tear down audio management and restore previous volume stream
          */
-        audioDeviceSelector.deactivate();
         audioDeviceSelector.stop();
         setVolumeControlStream(savedVolumeControlStream);
 
