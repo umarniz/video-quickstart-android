@@ -22,6 +22,7 @@ import android.widget.EditText
 import android.widget.Toast
 import com.koushikdutta.ion.Ion
 import com.twilio.audioswitch.selection.AudioDevice
+import com.twilio.audioswitch.selection.AudioDevice.BluetoothHeadset
 import com.twilio.audioswitch.selection.AudioDevice.Earpiece
 import com.twilio.audioswitch.selection.AudioDevice.Speakerphone
 import com.twilio.audioswitch.selection.AudioDevice.WiredHeadset
@@ -727,7 +728,7 @@ class VideoActivity : AppCompatActivity() {
     private fun updateAudioDeviceIcon(selectedAudioDevice: AudioDevice?) {
         var audioDeviceMenuIcon = R.drawable.ic_phonelink_ring_white_24dp
 
-        if (selectedAudioDevice is AudioDevice.BluetoothHeadset) {
+        if (selectedAudioDevice is BluetoothHeadset) {
             audioDeviceMenuIcon = R.drawable.ic_bluetooth_white_24dp
         } else if (selectedAudioDevice is WiredHeadset) {
             audioDeviceMenuIcon = R.drawable.ic_headset_mic_white_24dp

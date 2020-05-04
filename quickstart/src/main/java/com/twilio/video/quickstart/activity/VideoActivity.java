@@ -28,6 +28,10 @@ import android.widget.Toast;
 
 import com.koushikdutta.ion.Ion;
 import com.twilio.audioswitch.selection.AudioDevice;
+import com.twilio.audioswitch.selection.AudioDevice.BluetoothHeadset;
+import com.twilio.audioswitch.selection.AudioDevice.WiredHeadset;
+import com.twilio.audioswitch.selection.AudioDevice.Earpiece;
+import com.twilio.audioswitch.selection.AudioDevice.Speakerphone;
 import com.twilio.audioswitch.selection.AudioDeviceSelector;
 import com.twilio.video.AudioCodec;
 import com.twilio.video.CameraCapturer;
@@ -521,13 +525,13 @@ public class VideoActivity extends AppCompatActivity {
     private void updateAudioDeviceIcon(AudioDevice selectedAudioDevice) {
         int audioDeviceMenuIcon = R.drawable.ic_phonelink_ring_white_24dp;
 
-        if (selectedAudioDevice instanceof AudioDevice.BluetoothHeadset) {
+        if (selectedAudioDevice instanceof BluetoothHeadset) {
             audioDeviceMenuIcon = R.drawable.ic_bluetooth_white_24dp;
-        } else if (selectedAudioDevice instanceof AudioDevice.WiredHeadset) {
+        } else if (selectedAudioDevice instanceof WiredHeadset) {
             audioDeviceMenuIcon = R.drawable.ic_headset_mic_white_24dp;
-        } else if (selectedAudioDevice instanceof AudioDevice.Earpiece) {
+        } else if (selectedAudioDevice instanceof Earpiece) {
             audioDeviceMenuIcon = R.drawable.ic_phonelink_ring_white_24dp;
-        } else if (selectedAudioDevice instanceof AudioDevice.Speakerphone) {
+        } else if (selectedAudioDevice instanceof Speakerphone) {
             audioDeviceMenuIcon = R.drawable.ic_volume_up_white_24dp;
         }
 
