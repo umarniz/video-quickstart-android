@@ -724,16 +724,11 @@ class VideoActivity : AppCompatActivity() {
      * Update the menu icon based on the currently selected audio device.
      */
     private fun updateAudioDeviceIcon(selectedAudioDevice: AudioDevice?) {
-        var audioDeviceMenuIcon = R.drawable.ic_phonelink_ring_white_24dp
-
-        if (selectedAudioDevice is BluetoothHeadset) {
-            audioDeviceMenuIcon = R.drawable.ic_bluetooth_white_24dp
-        } else if (selectedAudioDevice is WiredHeadset) {
-            audioDeviceMenuIcon = R.drawable.ic_headset_mic_white_24dp
-        } else if (selectedAudioDevice is Earpiece) {
-            audioDeviceMenuIcon = R.drawable.ic_phonelink_ring_white_24dp
-        } else if (selectedAudioDevice is Speakerphone) {
-            audioDeviceMenuIcon = R.drawable.ic_volume_up_white_24dp
+        val audioDeviceMenuIcon = when(selectedAudioDevice) {
+            is BluetoothHeadset -> R.drawable.ic_bluetooth_white_24dp
+            is WiredHeadset -> R.drawable.ic_headset_mic_white_24dp
+            is Speakerphone -> R.drawable.ic_volume_up_white_24dp
+            else -> R.drawable.ic_phonelink_ring_white_24dp
         }
 
         audioDeviceMenuItem.setIcon(audioDeviceMenuIcon)
