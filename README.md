@@ -162,12 +162,12 @@ effects, reference the following snippet for enabling OpenSL ES:
      * Execute any time before creating a LocalAudioTrack and connecting 
      * to a Room.
      */
-    
-	// Enable OpenSL ES
-	tvi.webrtc.voiceengine.WebRtcAudioManager.setBlacklistDeviceForOpenSLESUsage(false);
-	
-	// Check if OpenSL ES is disabled
-	tvi.webrtc.voiceengine.WebRtcAudioUtils.deviceIsBlacklistedForOpenSLESUsage();
+
+    // Enable OpenSL ES
+    tvi.webrtc.voiceengine.WebRtcAudioManager.setBlacklistDeviceForOpenSLESUsage(false);
+
+    // Check if OpenSL ES is disabled
+    tvi.webrtc.voiceengine.WebRtcAudioUtils.deviceIsBlacklistedForOpenSLESUsage();
 
 ### Managing Device Specific Configurations
 The Video Android SDK does not maintain a list of devices for which hardware effects or OpenSL ES are disabled. We recommend maintaining a list in your own application and disabling these effects as needed. The [Signal App provides a great example](https://github.com/signalapp/Signal-Android/blob/master/src/org/thoughtcrime/securesms/ApplicationContext.java#L250) of how to maintain a list and disable the effects as needed.
