@@ -152,8 +152,7 @@ software implementations of AEC, NS, and AGC.
     WebRtcAudioUtils.setWebRtcBasedAutomaticGainControl(true);
     
 ### Configuring OpenSL ES
-Our library will use [OpenSL ES](https://developer.android.com/ndk/guides/audio/opensl/index.html)
-for audio playback if the device is compatible. Using OpenSL ES is more efficient, but can cause
+Starting with [Video Android SDK 5.6.0](https://www.twilio.com/docs/video/changelog-twilio-video-android#560-april-30th-2020), our library does not use OpenSL ES for audio playback by default. Prior versions starting with [Video Android SDK 5.5.1](https://www.twilio.com/docs/video/changelog-twilio-video-android#551-april-24th-2020) did use OpenSL ES by default. Using OpenSL ES is more efficient, but can cause
 problems with other audio effects. For example, we found on the Nexus 6P that OpenSL ES affected
 the device's hardware echo canceller so we blacklisted the Nexus 6P from using OpenSL ES. If you 
 are experiencing audio problems with a device that cannot be resolved using software audio 
@@ -163,12 +162,12 @@ effects, reference the following snippet for enabling OpenSL ES:
      * Execute any time before creating a LocalAudioTrack and connecting 
      * to a Room.
      */
-    
-    // Disable OpenSL ES 
-    WebRtcAudioManager.setBlacklistDeviceForOpenSLESUsage(true);
-    
-    // Check if OpenSL ES is disabled 
-    WebRtcAudioUtils.deviceIsBlacklistedForOpenSLESUsage()
+
+    // Enable OpenSL ES
+    tvi.webrtc.voiceengine.WebRtcAudioManager.setBlacklistDeviceForOpenSLESUsage(false);
+
+    // Check if OpenSL ES is disabled
+    tvi.webrtc.voiceengine.WebRtcAudioUtils.deviceIsBlacklistedForOpenSLESUsage();
 
 ### Managing Device Specific Configurations
 The Video Android SDK does not maintain a list of devices for which hardware effects or OpenSL ES are disabled. We recommend maintaining a list in your own application and disabling these effects as needed. The [Signal App provides a great example](https://github.com/signalapp/Signal-Android/blob/master/src/org/thoughtcrime/securesms/ApplicationContext.java#L250) of how to maintain a list and disable the effects as needed.
