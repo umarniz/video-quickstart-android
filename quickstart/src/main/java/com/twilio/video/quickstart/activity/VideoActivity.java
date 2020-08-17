@@ -2,7 +2,6 @@ package com.twilio.video.quickstart.activity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -27,12 +26,12 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.koushikdutta.ion.Ion;
-import com.twilio.audioswitch.selection.AudioDevice;
-import com.twilio.audioswitch.selection.AudioDevice.BluetoothHeadset;
-import com.twilio.audioswitch.selection.AudioDevice.WiredHeadset;
-import com.twilio.audioswitch.selection.AudioDevice.Earpiece;
-import com.twilio.audioswitch.selection.AudioDevice.Speakerphone;
-import com.twilio.audioswitch.selection.AudioDeviceSelector;
+import com.twilio.audioswitch.AudioDevice;
+import com.twilio.audioswitch.AudioDevice.BluetoothHeadset;
+import com.twilio.audioswitch.AudioDevice.WiredHeadset;
+import com.twilio.audioswitch.AudioDevice.Earpiece;
+import com.twilio.audioswitch.AudioDevice.Speakerphone;
+import com.twilio.audioswitch.AudioSwitch;
 import com.twilio.video.AudioCodec;
 import com.twilio.video.CameraCapturer;
 import com.twilio.video.CameraCapturer.CameraSource;
@@ -148,7 +147,7 @@ public class VideoActivity extends AppCompatActivity {
     /*
      * Audio management
      */
-    private AudioDeviceSelector audioDeviceSelector;
+    private AudioSwitch audioSwitch;
     private int savedVolumeControlStream;
     private MenuItem audioDeviceMenuItem;
 
@@ -178,7 +177,7 @@ public class VideoActivity extends AppCompatActivity {
         /*
          * Setup audio management and set the volume control stream
          */
-        audioDeviceSelector = new AudioDeviceSelector(getApplicationContext());
+        audioSwitch = new AudioSwitch(getApplicationContext());
         savedVolumeControlStream = getVolumeControlStream();
         setVolumeControlStream(AudioManager.STREAM_VOICE_CALL);
 
@@ -208,7 +207,7 @@ public class VideoActivity extends AppCompatActivity {
          * Start the audio device selector after the menu is created and update the icon when the
          * selected audio device changes.
          */
-        audioDeviceSelector.start((audioDevices, audioDevice) -> {
+        audioSwitch.start((audioDevices, audioDevice) -> {
             updateAudioDeviceIcon(audioDevice);
             return Unit.INSTANCE;
         });
@@ -338,7 +337,7 @@ public class VideoActivity extends AppCompatActivity {
         /*
          * Tear down audio management and restore previous volume stream
          */
-        audioDeviceSelector.stop();
+        audioSwitch.stop();
         setVolumeControlStream(savedVolumeControlStream);
 
         /*
@@ -430,7 +429,7 @@ public class VideoActivity extends AppCompatActivity {
     }
 
     private void connectToRoom(String roomName) {
-        audioDeviceSelector.activate();
+        audioSwitch.activate();
         ConnectOptions.Builder connectOptionsBuilder = new ConnectOptions.Builder(accessToken)
                 .roomName(roomName);
 
@@ -493,8 +492,8 @@ public class VideoActivity extends AppCompatActivity {
      * Show the current available audio devices.
      */
     private void showAudioDevices() {
-        AudioDevice selectedDevice = audioDeviceSelector.getSelectedAudioDevice();
-        List<AudioDevice> availableAudioDevices = audioDeviceSelector.getAvailableAudioDevices();
+        AudioDevice selectedDevice = audioSwitch.getSelectedAudioDevice();
+        List<AudioDevice> availableAudioDevices = audioSwitch.getAvailableAudioDevices();
 
         if (selectedDevice != null) {
             int selectedDeviceIndex = availableAudioDevices.indexOf(selectedDevice);
@@ -513,7 +512,7 @@ public class VideoActivity extends AppCompatActivity {
                                 dialog.dismiss();
                                 AudioDevice selectedAudioDevice = availableAudioDevices.get(index);
                                 updateAudioDeviceIcon(selectedAudioDevice);
-                                audioDeviceSelector.selectDevice(selectedAudioDevice);
+                                audioSwitch.selectDevice(selectedAudioDevice);
                             }).create().show();
         }
     }
@@ -746,7 +745,7 @@ public class VideoActivity extends AppCompatActivity {
 
             @Override
             public void onConnectFailure(Room room, TwilioException e) {
-                audioDeviceSelector.deactivate();
+                audioSwitch.deactivate();
                 intializeUI();
             }
 
@@ -757,7 +756,7 @@ public class VideoActivity extends AppCompatActivity {
                 VideoActivity.this.room = null;
                 // Only reinitialize the UI if disconnect was not called from onDestroy()
                 if (!disconnectedFromOnDestroy) {
-                    audioDeviceSelector.deactivate();
+                    audioSwitch.deactivate();
                     intializeUI();
                     moveLocalVideoToPrimaryView();
                 }
