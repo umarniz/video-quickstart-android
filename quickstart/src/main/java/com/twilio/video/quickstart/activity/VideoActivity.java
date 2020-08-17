@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -26,6 +27,14 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
+import com.google.android.exoplayer2.util.Util;
 import com.koushikdutta.ion.Ion;
 import com.twilio.audioswitch.selection.AudioDevice;
 import com.twilio.audioswitch.selection.AudioDevice.BluetoothHeadset;
@@ -156,6 +165,11 @@ public class VideoActivity extends AppCompatActivity {
     private boolean disconnectedFromOnDestroy;
     private boolean enableAutomaticSubscription;
 
+    /*
+     * Exo Player Test
+     */
+    private SimpleExoPlayer exoPlayer = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -196,6 +210,11 @@ public class VideoActivity extends AppCompatActivity {
          * Set the initial state of the UI
          */
         intializeUI();
+
+        /*
+         * Start playing a looping audio file as soon as the app starts
+         */
+        playLoopingAudio();
     }
 
     @Override
@@ -487,6 +506,27 @@ public class VideoActivity extends AppCompatActivity {
         localVideoActionFab.setOnClickListener(localVideoClickListener());
         muteActionFab.show();
         muteActionFab.setOnClickListener(muteClickListener());
+    }
+
+    /*
+        Plays a looping stereo audio file
+     */
+    private void playLoopingAudio() {
+        if (this.exoPlayer == null) {
+            this.exoPlayer = ExoPlayerFactory.newSimpleInstance(getApplicationContext());
+
+            // Produces DataSource instances through which media data is loaded.
+            DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(getApplicationContext(), Util.getUserAgent(getApplicationContext(), "quickstart"));
+
+            // This is the MediaSource representing the media to be played.
+            Uri stereo_tone = Uri.parse("asset:///stereo_tone.mp3");
+            MediaSource videoSource = new ExtractorMediaSource.Factory(dataSourceFactory).createMediaSource(stereo_tone );
+
+            // Prepare the player with the source.
+            this.exoPlayer.prepare(videoSource);
+            this.exoPlayer.setRepeatMode(Player.REPEAT_MODE_ONE);
+            this.exoPlayer.setPlayWhenReady(true);
+        }
     }
 
     /*
