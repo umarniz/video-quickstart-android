@@ -21,12 +21,11 @@ import android.view.View
 import android.widget.EditText
 import android.widget.Toast
 import com.koushikdutta.ion.Ion
-import com.twilio.audioswitch.selection.AudioDevice
-import com.twilio.audioswitch.selection.AudioDevice.BluetoothHeadset
-import com.twilio.audioswitch.selection.AudioDevice.Earpiece
-import com.twilio.audioswitch.selection.AudioDevice.Speakerphone
-import com.twilio.audioswitch.selection.AudioDevice.WiredHeadset
-import com.twilio.audioswitch.selection.AudioDeviceSelector
+import com.twilio.audioswitch.AudioDevice
+import com.twilio.audioswitch.AudioDevice.BluetoothHeadset
+import com.twilio.audioswitch.AudioDevice.Speakerphone
+import com.twilio.audioswitch.AudioDevice.WiredHeadset
+import com.twilio.audioswitch.AudioSwitch
 import com.twilio.video.AudioCodec
 import com.twilio.video.CameraCapturer
 import com.twilio.video.ConnectOptions
@@ -168,7 +167,7 @@ class VideoActivity : AppCompatActivity() {
 
         override fun onConnectFailure(room: Room, e: TwilioException) {
             videoStatusTextView.text = "Failed to connect"
-            audioDeviceSelector.deactivate()
+            audioSwitch.deactivate()
             initializeUI()
         }
 
@@ -179,7 +178,7 @@ class VideoActivity : AppCompatActivity() {
             this@VideoActivity.room = null
             // Only reinitialize the UI if disconnect was not called from onDestroy()
             if (!disconnectedFromOnDestroy) {
-                audioDeviceSelector.deactivate()
+                audioSwitch.deactivate()
                 initializeUI()
                 moveLocalVideoToPrimaryView()
             }
@@ -414,8 +413,8 @@ class VideoActivity : AppCompatActivity() {
     /*
      * Audio management
      */
-    private val audioDeviceSelector by lazy {
-        AudioDeviceSelector(applicationContext)
+    private val audioSwitch by lazy {
+        AudioSwitch(applicationContext)
     }
     private var savedVolumeControlStream by Delegates.notNull<Int>()
     private lateinit var audioDeviceMenuItem: MenuItem
@@ -533,7 +532,7 @@ class VideoActivity : AppCompatActivity() {
         /*
          * Tear down audio management and restore previous volume stream
          */
-        audioDeviceSelector.stop()
+        audioSwitch.stop()
         volumeControlStream = savedVolumeControlStream
 
         /*
@@ -562,7 +561,7 @@ class VideoActivity : AppCompatActivity() {
          * Start the audio device selector after the menu is created and update the icon when the
          * selected audio device changes.
          */
-        audioDeviceSelector.start { audioDevices, audioDevice ->
+        audioSwitch.start { audioDevices, audioDevice ->
             updateAudioDeviceIcon(audioDevice)
         }
 
@@ -638,7 +637,7 @@ class VideoActivity : AppCompatActivity() {
     }
 
     private fun connectToRoom(roomName: String) {
-        audioDeviceSelector.activate();
+        audioSwitch.activate();
         val connectOptionsBuilder = ConnectOptions.Builder(accessToken)
                 .roomName(roomName)
 
@@ -696,9 +695,9 @@ class VideoActivity : AppCompatActivity() {
      * Show the current available audio devices.
      */
     private fun showAudioDevices() {
-        val availableAudioDevices = audioDeviceSelector.availableAudioDevices
+        val availableAudioDevices = audioSwitch.availableAudioDevices
 
-        audioDeviceSelector.selectedAudioDevice?.let { selectedDevice ->
+        audioSwitch.selectedAudioDevice?.let { selectedDevice ->
             val selectedDeviceIndex = availableAudioDevices.indexOf(selectedDevice)
             val audioDeviceNames = ArrayList<String>()
 
@@ -715,7 +714,7 @@ class VideoActivity : AppCompatActivity() {
                         dialog.dismiss()
                         val selectedAudioDevice = availableAudioDevices[index]
                         updateAudioDeviceIcon(selectedAudioDevice)
-                        audioDeviceSelector.selectDevice(selectedAudioDevice)
+                        audioSwitch.selectDevice(selectedAudioDevice)
                     }.create().show()
         }
     }
